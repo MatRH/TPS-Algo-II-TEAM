@@ -56,7 +56,7 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 	hash->cant_elem = 0;
 	hash->tam_tabla = TAMANIO_INICIAL;
 	hash->funcion_destruc = destruir_dato;
-	hash->func_de_hashing = funcion() //aca falta poner la funcion de hash que busquemos
+	hash->func_de_hashing = funcion(); //aca falta poner la funcion de hash que busquemos
 	return hash;
 }
 
@@ -132,7 +132,7 @@ bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo){
 	return estado;
 }
 
-bool buscar_clave(lista_t* lista, char* clave, void* dato, bool reemplazar){
+bool buscar_clave(lista_t* lista, const char* clave, void* dato, bool reemplazar){
 	/*Si la clave no esta devuelve false. En caso de que este
 	la actualiza y devuelve true.*/
 	nodo_hash_t* nodo;
