@@ -6,17 +6,12 @@ Corrector: ...
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include "hash.h"
 #include <string.h>
+#include "hash.h"
+#include "lista.h"
 #define TAMANIO_INICIAL 53
 
-nodo_hash_t* crear_nodo(void* dato, char* clave);
-
-bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
-
-bool buscar_clave(lista_t* lista, char* clave, void* dato, bool reemplazar);
-
-typedef nodo_hash{
+typedef struct nodo_hash{
 	void* dato;
 	char* clave;
 }nodo_hash_t;
@@ -30,6 +25,12 @@ struct hash{
 	hash_destruir_dato_t funcion_destruc;
 	funcion_de_hash func_de_hashing;
 };
+
+nodo_hash_t* crear_nodo(void* dato, char* clave);
+
+bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
+
+bool buscar_clave(lista_t* lista, char* clave, void* dato, bool reemplazar);
 
 //struct hash_iter
 //...
@@ -47,7 +48,11 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 		free(hash);
 		return NULL;
 	}
-	//creo que falta una funcion que recorra la lista creada y ponga listas vacias
+	/*creo que falta una funcion que recorra la lista creada y ponga listas vacias
+
+	o podriamos hacer que al agregar un dato si no tiene lista que la cree, para
+	no desperdiciar memoria*/
+
 	hash->cant_elem = 0;
 	hash->tam_tabla = TAMANIO_INICIAL;
 	hash->funcion_destruc = destruir_dato;
