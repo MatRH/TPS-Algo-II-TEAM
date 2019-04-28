@@ -16,21 +16,20 @@ typedef struct nodo_hash{
 	char* clave;
 }nodo_hash_t;
 
-typedef size_t (*funcion_de_hash)(char*);
+typedef size_t (*funcion_de_hash)(const char*);
 
 struct hash{
 	lista_t** tabla_hash;
 	size_t cant_elem;
 	size_t tam_tabla;
 	hash_destruir_dato_t funcion_destruc;
-	funcion_de_hash func_de_hashing;
+	funcion_de_hash funcion_hash;
 };
 
-nodo_hash_t* crear_nodo(void* dato, char* clave);
-
+unsigned long hash_djb2(unsigned char *str); //funcion de HASH_H
+nodo_hash_t* crear_nodo(void* dato, const char* clave);
 bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
-
-bool buscar_clave(lista_t* lista, char* clave, void* dato, bool reemplazar);
+bool buscar_clave(lista_t* lista, const char* clave, void* dato, bool reemplazar);
 
 //struct hash_iter
 //...
@@ -56,13 +55,13 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 	hash->cant_elem = 0;
 	hash->tam_tabla = TAMANIO_INICIAL;
 	hash->funcion_destruc = destruir_dato;
-	hash->func_de_hashing = funcion(); //aca falta poner la funcion de hash que busquemos
+	hash->funcion_hash = &hash_djb2;
 	return hash;
 }
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	//Aplico la funcion de hash a la clave para saber en que posicion de la lista guardo
-	lista_t* lista_hash = hash->tabla_hash[hash->func_de_hashing(clave)]; //obtenes en que lista vas a guardar
+	lista_t* lista_hash = hash->tabla_hash[hash->funcion_hash(clave)]; //obtenes en que lista vas a guardar
 	if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
 		nodo_hash_t* nodo_hash = crear_nodo(dato, clave);
 		if (!nodo_hash) return false;
@@ -77,7 +76,7 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 }
 
 void *hash_borrar(hash_t *hash, const char *clave){
-	lista_t* lista_hash = hash->tabla_hash[hash->func_de_hashing(clave)];
+	lista_t* lista_hash = hash->tabla_hash[hash->funcion_hash(clave)];
 	if (!lista_hash) return NULL; //la lista esta vacia, por ende no va a estar
 
 	void* dato;
@@ -98,7 +97,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 }
 
 bool hash_pertenece(const hash_t *hash, const char *clave){
-	size_t pos_hash = hash->func_de_hashing(clave); //obtengo la posicion de la tabla donde debo buscar
+	size_t pos_hash = hash->funcion_hash(clave); //obtengo la posicion de la tabla donde debo buscar
 	bool pertenece = buscar_clave(hash->tabla_hash[pos_hash], clave, NULL, false); //devuelve truee si esta
 	return pertenece;
 }
@@ -150,4 +149,16 @@ bool buscar_clave(lista_t* lista, const char* clave, void* dato, bool reemplazar
 	}
 	lista_iter_destruir(iter);
 	return false;
+}
+/******************************************************************************
+*							FUNCION DE HASHING 																							*
+******************************************************************************/
+
+size_t hash_djb2(const char *str){
+		unsigned long hash = 5381;
+		int c;
+		while (c = *str++)
+				hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+
+		return hash;
 }
