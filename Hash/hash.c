@@ -13,7 +13,7 @@ Corrector: ...
 
 typedef struct nodo_hash{
 	void* dato;
-	char* clave;
+	const char* clave;
 }nodo_hash_t;
 
 typedef size_t (*funcion_de_hash)(const char*);
@@ -26,7 +26,7 @@ struct hash{
 	funcion_de_hash funcion_hash;
 };
 
-unsigned long hash_djb2(unsigned char *str); //funcion de HASH_H
+size_t hash_djb2(const char *str); //funcion de HASH_H
 nodo_hash_t* crear_nodo(void* dato, const char* clave);
 bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
 bool buscar_clave(lista_t* lista, const char* clave, void* dato, bool reemplazar);
@@ -83,7 +83,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 	nodo_hash_t* nodo;
 	lista_iter_t* iter = lista_iter_crear(lista_hash);
 	while (!lista_iter_al_final(iter)){
-		if(!strcmp(lista_iter_ver_actual(iter)->clave, clave)){
+		if(!strcmp(((nodo_hash_t*)lista_iter_ver_actual(iter))->clave, clave)){
 			nodo = lista_iter_borrar(iter); //devuelve un nodo_hash_t
 			dato = nodo->dato;
 			free(nodo);
@@ -113,7 +113,7 @@ size_t hash_cantidad(const hash_t *hash){
 
 
 //Funciones auxiliares
-nodo_hash_t* crear_nodo(void* valor, char* clave){
+nodo_hash_t* crear_nodo(void* valor, const char* clave){
 	/*Crea un nodo. Si falla el proceso de pedir memoria devuelve NULL.
 	Caso contrario devuelve un nodo*/
 	nodo_hash_t *nodo_nuevo = malloc(sizeof(nodo_hash_t));
@@ -126,7 +126,7 @@ nodo_hash_t* crear_nodo(void* valor, char* clave){
 }
 
 bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo){
-	bool estado = lista_insertar_primero(lita, nodo); //da true o false
+	bool estado = lista_insertar_primero(lista, nodo); //da true o false
 	if (estado) hash->cant_elem ++; //aumento la cantidad de elementos
 	return estado;
 }
