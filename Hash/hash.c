@@ -61,7 +61,7 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	//Aplico la funcion de hash a la clave para saber en que posicion de la lista guardo
-	lista_t* lista_hash = hash->tabla_hash[hash->funcion_hash(clave)]; //obtenes en que lista vas a guardar
+	lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla]; //obtenes en que lista vas a guardar
 	if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
 		nodo_hash_t* nodo_hash = crear_nodo(dato, clave);
 		if (!nodo_hash) return false;
@@ -73,10 +73,11 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 		if (!nodo_hash) return false;
 		return guardar_elemento(hash, lista_hash, nodo_hash);
 	}
+	return true;
 }
 
 void *hash_borrar(hash_t *hash, const char *clave){
-	lista_t* lista_hash = hash->tabla_hash[hash->funcion_hash(clave)];
+	lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla];
 	if (!lista_hash) return NULL; //la lista esta vacia, por ende no va a estar
 
 	void* dato;
@@ -88,7 +89,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 			dato = nodo->dato;
 			free(nodo);
 			lista_iter_destruir(iter);
-			return dato;
+			return dato; //el usuario se encarga de liberar esto
 		}
 		lista_iter_avanzar(iter);
 	}
@@ -97,7 +98,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 }
 
 bool hash_pertenece(const hash_t *hash, const char *clave){
-	size_t pos_hash = hash->funcion_hash(clave); //obtengo la posicion de la tabla donde debo buscar
+	size_t pos_hash = (hash->funcion_hash(clave)) % hash->tam_tabla; //obtengo la posicion de la tabla donde debo buscar
 	bool pertenece = buscar_clave(hash->tabla_hash[pos_hash], clave, NULL, false); //devuelve truee si esta
 	return pertenece;
 }
@@ -139,9 +140,9 @@ bool buscar_clave(lista_t* lista, const char* clave, void* dato, bool reemplazar
 	while (!lista_iter_al_final(iter)){
 		nodo = lista_iter_ver_actual(iter); //te devuelve un nodo_hash_t
 		if (!strcmp(clave, nodo->clave)){ //si da cero son iguales
-			if (reemplazar){
-				nodo->clave = clave;
-				nodo->dato = dato;
+			if (reemplazar){ //la calve sigue siendo la misma, destruyo dayo y guardo el nuevo
+				hash->funcion_destruc(nodo->dato); //destrui el dato viejo
+				nodo->dato = dato; //guardo el dato actualizado
 			}
 			return true;
 		}
