@@ -116,6 +116,21 @@ size_t hash_cantidad(const hash_t *hash){
 	return hash->cant_elem;
 }
 
+void hash_destruir(hash_t *hash){
+	size_t pos = 0;
+	while(pos < hash->tam_tabla){
+		lista_t* lista_actual = hash->tabla_hash[pos];
+		lista_destruir(lista_actual, &destruir_nodo_hash);
+	}
+	free(hash);
+}
+
+void destruir_nodo_hash(nodo_hash_t* nodo, hash_destruir_dato_t hash_destruir_dato){
+	/*Destruye el nodo y sus datos*/
+	hash_destruir_dato(nodo->dato);
+	free(nodo->clave);
+	free(nodo);
+}
 /* *****************************************************************
  *            IMPLEMENTACION PRIMITIVAS DEL ITERADOR DEL HASH
   * *****************************************************************/
