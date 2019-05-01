@@ -9,7 +9,7 @@ Corrector: Secchi, Ana
 #include <string.h>
 #include "hash.h"
 #include "lista.h"
-#define TAMANIO_INICIAL 53
+#define TAMANIO_INICIAL (size_t) 53
 
 typedef struct nodo_hash{
 	void* dato;
@@ -39,6 +39,7 @@ bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
 bool buscar_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void* dato, bool reemplazar);
 char *strdup(const char *s);
 size_t buscar_lista_no_vacia(const hash_t* hash, size_t pos);
+bool poner_listas_vacias(hash_t* hash, size_t tam_hash)
 /* *****************************************************************
  *                  IMPLEMENTACION PRIMITIVAS DEL HASH
   * *****************************************************************/
@@ -49,6 +50,12 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 
 	hash->tabla_hash = malloc(sizeof(void*) * TAMANIO_INICIAL);
 	if (!hash->tabla_hash){
+		free(hash);
+		return NULL;
+	}
+	bool estado = poner_listas_vacias(hash, TAMANIO_INICIAL);
+	if (!estado){
+		free(hash->tabla_hash);
 		free(hash);
 		return NULL;
 	}
@@ -180,7 +187,15 @@ bool hash_iter_avanzar(hash_iter_t *iter){
 	return true;
 }
 
-//const char *hash_iter_ver_actual(const hash_iter_t *iter)
+const char *hash_iter_ver_actual(const hash_iter_t *iter){
+	if (iter->pos == iter->hash->tam_tabla) return NULL;
+
+	if (lista_iter_al_final(iter->iter_lista)) return NULL;
+
+	//Si llego a esta instancia tengo algo para devolver
+	nodo_hash_t* nodo = lista_iter_ver_actual(iter->iter_lista);
+	//Falta terminar aca
+}
 
 bool hash_iter_al_final(const hash_iter_t *iter){
 	return iter->hash->tam_tabla == iter->pos;
@@ -252,6 +267,23 @@ char *strdup(const char *s) {
     }
     return p;
 }
+
+bool poner_listas_vacias(hash_t* hash, size_t tam_hash){
+	/*A cada bloque de la tabla le agrega una lista vacia.
+	Devuelve false en caso de error*/
+	for (size_t i = 0; i < tam_hash; i++){
+		lista_t* lista = lista_crear();
+		if (!lista){
+			for (--i; i >= 0; i--){ //tendra problemas si falla a la primera? porque i seria -1 y es size_t su tipo???
+				lista_destruir(hash->tabla_hash[i], NULL);
+			}
+			return false;
+		}
+		hash->tabla_hash[i] = lista;
+	}
+	return true;
+}
+
 /******************************************************************************
 *							FUNCION DE HASHING 																							*
 ******************************************************************************/
