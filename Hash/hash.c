@@ -47,7 +47,7 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 	hash_t* hash = malloc(sizeof(hash_t));
 	if (!hash) return NULL;
 
-	hash->tabla_hash = malloc(sizeof(lista_t) * TAMANIO_INICIAL);
+	hash->tabla_hash = malloc(sizeof(void*) * TAMANIO_INICIAL);
 	if (!hash->tabla_hash){
 		free(hash);
 		return NULL;
@@ -120,12 +120,18 @@ void hash_destruir(hash_t *hash){
 	size_t pos = 0;
 	while(pos < hash->tam_tabla){
 		lista_t* lista_actual = hash->tabla_hash[pos];
-		lista_destruir(lista_actual, &destruir_nodo_hash);
+
+		//recorrer con lista_iterar y usar la funcion visitar para borrar los nodos
+
+		lista_destruir(lista_actual);
 		pos++;
 	}
 	free(hash);
 }
 
+/*Esto está mal, porque no puede recibir la funcion destruir dato, hay que cambiar la lógica
+para que lo haga a través del iterador, y use la función visitar para destruir Los
+datos y despúes destruir la lista*/
 void destruir_nodo_hash(nodo_hash_t* nodo, hash_destruir_dato_t hash_destruir_dato){
 	/*Destruye el nodo y sus datos*/
 	hash_destruir_dato(nodo->dato);
