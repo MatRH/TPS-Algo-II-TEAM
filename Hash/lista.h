@@ -81,7 +81,7 @@ void lista_iterar(lista_t *lista, bool visitar(void *dato, void *extra), void *e
 //Pre: La lista debe haber sido creada.
 lista_iter_t *lista_iter_crear(lista_t *lista);
 
-//Avanza a la siguiente posicion de la lista, devuelve false en caso de que no 
+//Avanza a la siguiente posicion de la lista, devuelve false en caso de que no
 //haya siguiente. Devuelve true si pudo avanzar.
 bool lista_iter_avanzar(lista_iter_t *iter);
 

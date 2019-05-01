@@ -29,7 +29,7 @@ struct hash{
 size_t hash_djb2(const char *str); //funcion de HASH_H
 nodo_hash_t* crear_nodo(void* dato, const char* clave);
 bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
-bool buscar_clave(lista_t* lista, const char* clave, void* dato, bool reemplazar);
+bool buscar_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void* dato, bool reemplazar);
 
 //struct hash_iter
 //...
@@ -61,14 +61,16 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	//Aplico la funcion de hash a la clave para saber en que posicion de la lista guardo
-	lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla]; //obtenes en que lista vas a guardar
+	//lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla];
+	size_t indice = (hash->funcion_hash(clave)) % hash->tam_tabla;//obtenes en que lista vas a guardar
+	lista_t* lista_hash = hash->tabla_hash[indice];
 	if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
 		nodo_hash_t* nodo_hash = crear_nodo(dato, clave);
 		if (!nodo_hash) return false;
 		return guardar_elemento(hash, lista_hash, nodo_hash);
 	}
 	//Busco si la clave esta en la lista
-	if(!buscar_clave(lista_hash, clave, dato, true)){ //si esta quiero reemplazar por eso el true
+	if(!buscar_clave(hash, indice, clave, dato, true)){ //si esta quiero reemplazar por eso el true
 		nodo_hash_t* nodo_hash = crear_nodo(dato, clave);
 		if (!nodo_hash) return false;
 		return guardar_elemento(hash, lista_hash, nodo_hash);
@@ -99,7 +101,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 
 bool hash_pertenece(const hash_t *hash, const char *clave){
 	size_t pos_hash = (hash->funcion_hash(clave)) % hash->tam_tabla; //obtengo la posicion de la tabla donde debo buscar
-	bool pertenece = buscar_clave(hash->tabla_hash[pos_hash], clave, NULL, false); //devuelve truee si esta
+	bool pertenece = buscar_clave(hash, pos_hash, clave, NULL, false); //devuelve truee si esta
 	return pertenece;
 }
 
@@ -132,15 +134,16 @@ bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo){
 	return estado;
 }
 
-bool buscar_clave(lista_t* lista, const char* clave, void* dato, bool reemplazar){
+bool buscar_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void* dato, bool reemplazar){
 	/*Si la clave no esta devuelve false. En caso de que este
 	la actualiza y devuelve true.*/
+	lista_t* lista = hash->tabla_hash[indice_tabla];
 	nodo_hash_t* nodo;
 	lista_iter_t* iter = lista_iter_crear(lista);
 	while (!lista_iter_al_final(iter)){
 		nodo = lista_iter_ver_actual(iter); //te devuelve un nodo_hash_t
 		if (!strcmp(clave, nodo->clave)){ //si da cero son iguales
-			if (reemplazar){ //la calve sigue siendo la misma, destruyo dayo y guardo el nuevo
+			if (reemplazar){ //la clave sigue siendo la misma, destruyo dato y guardo el nuevo
 				hash->funcion_destruc(nodo->dato); //destrui el dato viejo
 				nodo->dato = dato; //guardo el dato actualizado
 			}
