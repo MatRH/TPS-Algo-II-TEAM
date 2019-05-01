@@ -125,26 +125,23 @@ size_t hash_cantidad(const hash_t *hash){
 
 void hash_destruir(hash_t *hash){
 	size_t pos = 0;
-	while(pos < hash->tam_tabla){
+	while(pos < hash->tam_tabla){ //recorro la tabla
 		lista_t* lista_actual = hash->tabla_hash[pos];
+		lista_iter_t* lista_iter = lista_iter_crear(lista_actual);
 
-		//recorrer con lista_iterar y usar la funcion visitar para borrar los nodos
-
-		lista_destruir(lista_actual);
+		while (!lista_iter_al_final(lista_iter)){ //recorro la lista
+			nodo_hash_t* nodo_actual = lista_iter_ver_actual(lista_iter);
+			hash->funcion_destruc(nodo_actual->dato); //aplico la funcion al dato
+			free(nodo_actual->clave); //borro la copia de la clave
+			free(nodo_actual);			//borro el nodo
+		}
+		lista_iter_destruir(lista_iter); //borro el iterador
+		lista_destruir(lista_actual);	 //borro la lista ahora vacia
 		pos++;
 	}
-	free(hash);
+	free(hash);		//borro el hash
 }
 
-/*Esto está mal, porque no puede recibir la funcion destruir dato, hay que cambiar la lógica
-para que lo haga a través del iterador, y use la función visitar para destruir Los
-datos y despúes destruir la lista*/
-void destruir_nodo_hash(nodo_hash_t* nodo, hash_destruir_dato_t hash_destruir_dato){
-	/*Destruye el nodo y sus datos*/
-	hash_destruir_dato(nodo->dato);
-	free(nodo->clave);
-	free(nodo);
-}
 /* *****************************************************************
  *            IMPLEMENTACION PRIMITIVAS DEL ITERADOR DEL HASH
   * *****************************************************************/
