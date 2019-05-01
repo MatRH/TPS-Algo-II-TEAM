@@ -1,8 +1,8 @@
 /*
-Alumnos: Ruiz Huidobro Matias, Torresetti Lisandro
+Alumnos: Ruiz Huidobro, Matias; Torresetti, Lisandro
 Padrones: 102251, 99846
 Numero de grupo: 23
-Corrector: Secchi Ana
+Corrector: Secchi, Ana
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,14 +66,15 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	//lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla];
 	size_t indice = (hash->funcion_hash(clave)) % hash->tam_tabla;//obtenes en que lista vas a guardar
 	lista_t* lista_hash = hash->tabla_hash[indice];
+	const char* copia_clave = strdup(clave);
 	if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
-		nodo_hash_t* nodo_hash = crear_nodo(dato, clave);
+		nodo_hash_t* nodo_hash = crear_nodo(dato, copia_clave);
 		if (!nodo_hash) return false;
 		return guardar_elemento(hash, lista_hash, nodo_hash);
 	}
 	//Busco si la clave esta en la lista
-	if(!buscar_clave(hash, indice, clave, dato, true)){ //si esta quiero reemplazar por eso el true
-		nodo_hash_t* nodo_hash = crear_nodo(dato, clave);
+	if(!buscar_clave(hash, indice, copia_clave, dato, true)){ //si esta quiero reemplazar por eso el true
+		nodo_hash_t* nodo_hash = crear_nodo(dato, copia_clave);
 		if (!nodo_hash) return false;
 		return guardar_elemento(hash, lista_hash, nodo_hash);
 	}
@@ -91,6 +92,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 		if(!strcmp(((nodo_hash_t*)lista_iter_ver_actual(iter))->clave, clave)){
 			nodo = lista_iter_borrar(iter); //devuelve un nodo_hash_t
 			dato = nodo->dato;
+			free(nodo->clave);//libero la copia de la clave
 			free(nodo);
 			lista_iter_destruir(iter);
 			return dato; //el usuario se encarga de liberar esto
