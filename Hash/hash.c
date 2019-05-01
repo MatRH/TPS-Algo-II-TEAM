@@ -26,16 +26,19 @@ struct hash{
 	funcion_de_hash funcion_hash;
 };
 
+struct hash_iter{
+	const hash_t* hash;
+	lista_iter_t* iter_lista;
+	size_t pos;
+};
+
+/*DECLARACIONES DE FUNCIONES AUZILIARES*/
 size_t hash_djb2(const char *str); //funcion de HASH_H
 nodo_hash_t* crear_nodo(void* dato, char* clave);
 bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
 bool buscar_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void* dato, bool reemplazar);
 char *strdup(const char *s);
-struct hash_iter{
-	hash_t* hash;
-	lista_iter_t* iter_lista;
-	size_t pos;
-};
+size_t buscar_lista_no_vacia(const hash_t* hash, size_t pos);
 /* *****************************************************************
  *                  IMPLEMENTACION PRIMITIVAS DEL HASH
   * *****************************************************************/
@@ -120,14 +123,14 @@ hash_iter_t *hash_iter_crear(const hash_t *hash){
 	hash_iter_t* iter = malloc(sizeof(hash_iter_t));
 	if (!iter) return NULL;
 
-	iter->hash;
-	size_t pos_ini = buscar_lista_no_vacia(hash, 0);
+	iter->hash = hash;
+	size_t pos_ini = buscar_lista_no_vacia(hash, 0); //posicion de la primer lista no vacia
 	iter->pos = pos_ini;
 	if (pos_ini == hash->tam_tabla) iter->iter_lista = NULL; //todas las listas estan vacias
 
 	else{
-		iter->iter_lista = lista_iter_crear(hash->tabla_hash[pos_ini]);
-		if (!iter->iter_lista){ //fallo la creacion del iterador de la lista
+		iter->iter_lista = lista_iter_crear(hash->tabla_hash[pos_ini]);//crea iterador de la lista
+		if (!iter->iter_lista){ //falló la creacion del iterador de la lista
 			free(iter);
 			return NULL;
 		}
@@ -144,15 +147,15 @@ bool hash_iter_avanzar(hash_iter_t *iter){
 		return lista_iter_avanzar(iter->iter_lista);
 	}
 	//2)Estoy en una lista pero el iterador esta al final
-	lista_iter_destruir(iter->iter_lista); //destruyo el iterador
+	lista_iter_destruir(iter->iter_lista); //destruyo el iterador de la lista
 	iter->iter_lista = NULL;
-	size_t pos_nueva = buscar_lista_no_vacia(iter->hash, iter->pos + 1); //asi busco a partir de la siguiente posicion
+	size_t pos_nueva = buscar_lista_no_vacia(iter->hash, iter->pos + 1); //así busco a partir de la siguiente posicion
 	iter->pos = pos_nueva;
-	if (pos_nueva != iter->has->tam_tabla){ //significa que sigo dentro de los limites de la tabla, si no entrp a este if llegue al final del hash
-		iter->iter_lista = lista_iter_crear(iter->hash->tam_tabla[pos_nueva]);
+	if (pos_nueva != iter->hash->tam_tabla){ //significa que sigo dentro de los limites de la tabla, si no entrp a este if llegue al final del hash
+		iter->iter_lista = lista_iter_crear(iter->hash->tabla_hash[pos_nueva]);
 		if (!iter->iter_lista) return false; //hubo problemas creando el iterador
 	}
-	return true
+	return true;
 }
 
 //const char *hash_iter_ver_actual(const hash_iter_t *iter)

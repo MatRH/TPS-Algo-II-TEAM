@@ -15,7 +15,7 @@ typedef struct nodo{
 struct lista{
 	nodo_t* prim;
 	nodo_t* ult;
-	size_t cant;	
+	size_t cant;
 };
 
 typedef struct lista_iter{
@@ -80,7 +80,7 @@ bool lista_insertar_primero(lista_t *lista, void *dato){
 	if (lista_esta_vacia(lista)) lista->ult = nodo;
 	else{
 		nodo_t* nodo_viejo = lista->prim;
-		nodo->prox = nodo_viejo;	
+		nodo->prox = nodo_viejo;
 	}
 	lista->prim = nodo;
 	lista->cant ++;
@@ -229,7 +229,7 @@ bool lista_iter_insertar(lista_iter_t *iter, void *dato){
 
 	if(iter->anterior){
 		iter->anterior->prox = nodo;
-	} 
+	}
 	if(iter->posicion == 0) iter->lista->prim = nodo;
 	if(lista_iter_al_final(iter)) iter->lista->ult = nodo;
 	if(lista_esta_vacia(iter->lista)){
@@ -261,7 +261,7 @@ void *lista_iter_borrar(lista_iter_t *iter){
 
 }
 
- 
+
 
 
 
@@ -274,4 +274,3 @@ void *lista_iter_borrar(lista_iter_t *iter){
  * *****************************************************************/
 
 void pruebas_lista_alumno(void);
-
