@@ -13,7 +13,7 @@ Corrector: Secchi, Ana
 
 typedef struct nodo_hash{
 	void* dato;
-	const char* clave;
+	char* clave;
 }nodo_hash_t;
 
 typedef size_t (*funcion_de_hash)(const char*);
@@ -27,10 +27,10 @@ struct hash{
 };
 
 size_t hash_djb2(const char *str); //funcion de HASH_H
-nodo_hash_t* crear_nodo(void* dato, const char* clave);
+nodo_hash_t* crear_nodo(void* dato, char* clave);
 bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
 bool buscar_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void* dato, bool reemplazar);
-
+char *strdup(const char *s);
 struct hash_iter{
 	hash_t* hash;
 	lista_iter_t* iter_lista;
@@ -65,9 +65,9 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	//Aplico la funcion de hash a la clave para saber en que posicion de la lista guardo
 	//lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla];
 	size_t indice = (hash->funcion_hash(clave)) % hash->tam_tabla;//obtenes en que lista vas a guardar
+	char* copia_clave = strdup(clave);
 	lista_t* lista_hash = hash->tabla_hash[indice];
-	const char* copia_clave = strdup(clave);
-	if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
+		if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
 		nodo_hash_t* nodo_hash = crear_nodo(dato, copia_clave);
 		if (!nodo_hash) return false;
 		return guardar_elemento(hash, lista_hash, nodo_hash);
@@ -171,7 +171,7 @@ void hash_iter_destruir(hash_iter_t* iter){
 
 
 //Funciones auxiliares
-nodo_hash_t* crear_nodo(void* valor, const char* clave){
+nodo_hash_t* crear_nodo(void* valor, char* clave){
 	/*Crea un nodo. Si falla el proceso de pedir memoria devuelve NULL.
 	Caso contrario devuelve un nodo*/
 	nodo_hash_t *nodo_nuevo = malloc(sizeof(nodo_hash_t));
@@ -217,6 +217,15 @@ size_t buscar_lista_no_vacia(const hash_t* hash, size_t pos){
 		pos++;
 	} //si no encuentra una si o si devuelve el valor del tam de la tabla
 	return pos;
+}
+
+char *strdup(const char *s) {
+    size_t size = strlen(s) + 1;
+    char *p = malloc(size);
+    if (p != NULL) {
+        memcpy(p, s, size);
+    }
+    return p;
 }
 /******************************************************************************
 *							FUNCION DE HASHING 																							*
