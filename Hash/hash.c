@@ -121,6 +121,7 @@ void hash_destruir(hash_t *hash){
 	while(pos < hash->tam_tabla){
 		lista_t* lista_actual = hash->tabla_hash[pos];
 		lista_destruir(lista_actual, &destruir_nodo_hash);
+		pos++;
 	}
 	free(hash);
 }
