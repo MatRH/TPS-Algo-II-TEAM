@@ -134,9 +134,10 @@ void hash_destruir(hash_t *hash){
 			hash->funcion_destruc(nodo_actual->dato); //aplico la funcion al dato
 			free(nodo_actual->clave); //borro la copia de la clave
 			free(nodo_actual);			//borro el nodo
+			lista_iter_avanzar(lista_iter); //Avanzo a la prox posicion
 		}
 		lista_iter_destruir(lista_iter); //borro el iterador
-		lista_destruir(lista_actual);	 //borro la lista ahora vacia
+		lista_destruir(lista_actual, NULL);	 //borro la lista ahora vacia
 		pos++;
 	}
 	free(hash);		//borro el hash
