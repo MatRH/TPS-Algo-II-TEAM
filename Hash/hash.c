@@ -10,6 +10,8 @@ Corrector: Secchi, Ana
 #include "hash.h"
 #include "lista.h"
 #define TAMANIO_INICIAL (size_t) 53
+#define FACTOR_DE_CARGA 1 //Probar distintos valores, segun teorica puede ser 2 o 3 tmb
+#define FACTOR_REDUCCION 0.75
 
 typedef struct nodo_hash{
 	void* dato;
@@ -39,7 +41,8 @@ bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
 bool buscar_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void* dato, bool reemplazar);
 char *strdup(const char *s);
 size_t buscar_lista_no_vacia(const hash_t* hash, size_t pos);
-bool poner_listas_vacias(hash_t* hash, size_t tam_hash)
+bool poner_listas_vacias(lista_t** tabla_hash, size_t tam_hash);
+bool hash_redimensionar(hash_t* hash, const size_t nueva_capacidad);
 /* *****************************************************************
  *                  IMPLEMENTACION PRIMITIVAS DEL HASH
   * *****************************************************************/
@@ -53,8 +56,8 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 		free(hash);
 		return NULL;
 	}
-	bool estado = poner_listas_vacias(hash, TAMANIO_INICIAL);
-	if (!estado){
+	//bool estado = poner_listas_vacias(hash->tabla_hash, TAMANIO_INICIAL);
+	if (!poner_listas_vacias(hash->tabla_hash, TAMANIO_INICIAL)){
 		free(hash->tabla_hash);
 		free(hash);
 		return NULL;
@@ -74,6 +77,13 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	//Aplico la funcion de hash a la clave para saber en que posicion de la lista guardo
 	//lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla];
+	//1)Chequeo que no pase el factor de carga
+	size_t ocupada = hash->cant_elem / hash->tam_tabla;
+	size_t nueva_capacidad = 2 * hash->tam_tabla - 1; //evito que de par, no se como hacer para que quede primo
+	if (ocupada > FACTOR_DE_CARGA){
+		if (!hash_redimensionar(hash, nueva_capacidad)) return false;
+	}
+
 	size_t indice = (hash->funcion_hash(clave)) % hash->tam_tabla;//obtenes en que lista vas a guardar
 	char* copia_clave = strdup(clave);
 	lista_t* lista_hash = hash->tabla_hash[indice];
@@ -94,6 +104,13 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 void *hash_borrar(hash_t *hash, const char *clave){
 	lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla];
 	if (!lista_hash) return NULL; //la lista esta vacia, por ende no va a estar
+
+	//Redimensiono para abajo
+	float ocupada = (float)hash->cant_elem / hash->tam_tabla; //chequear casteo
+	size_t nueva_capacidad = hash->tam_tabla / 2; //no se como hacer que de primo
+	if (ocupada <  FACTOR_REDUCCION && hash->cant_elem > 100){ //redimensiono //CHEQUEAR ESE 100
+		if (!hash_redimensionar(hash, nueva_capacidad)) return NULL;
+	}
 
 	void* dato;
 	nodo_hash_t* nodo;
@@ -266,22 +283,65 @@ char *strdup(const char *s) {
     return p;
 }
 
-bool poner_listas_vacias(hash_t* hash, size_t tam_hash){
+bool poner_listas_vacias(lista_t** tabla_hash, size_t tam_hash){
 	/*A cada bloque de la tabla le agrega una lista vacia.
 	Devuelve false en caso de error*/
 	for (size_t i = 0; i < tam_hash; i++){
 		lista_t* lista = lista_crear();
 		if (!lista){
 			for (--i; i >= 0; i--){ //tendra problemas si falla a la primera? porque i seria -1 y es size_t su tipo???
-				lista_destruir(hash->tabla_hash[i], NULL);
+				lista_destruir(tabla_hash[i], NULL); //tabla_hash[i] te va a dar una lista
 			}
 			return false;
 		}
-		hash->tabla_hash[i] = lista;
+		tabla_hash[i] = lista;
 	}
 	return true;
 }
 
+bool hash_redimensionar(hash_t* hash, const size_t nueva_capacidad){
+	/*Redimensiona el hash, en caso de error devuelve false*/
+	//1)Recorro cada posicion del hash viejo y hasheo cada elemento a la nueva tabla
+	lista_t** nueva_tabla = malloc(sizeof(void*) * nueva_capacidad); //trata de que siempre sea primo
+	if (!nueva_tabla) return false;
+
+	//debo recorrerla y ponerle listas vacias
+	if (!poner_listas_vacias(nueva_tabla, nueva_capacidad)){ //si falla libero la memoria pedida
+		free(nueva_tabla);
+		return false;
+	}
+	size_t nueva_pos; //si trae problemas ponerlo dentro del while de abajo
+
+	for (size_t i = 0; i < hash->tam_tabla; i++){ //debes liberar las listas vacias, sino las perdes 4ever
+		lista_t* lista_actual = hash->tabla_hash[i];
+		if (!lista_actual){
+			lista_destruir(lista_actual, NULL);
+			continue;
+		}
+
+		lista_iter_t* iter_lista = lista_iter_crear(lista_actual);
+		if (!iter_lista){  //chequeo que se creo correctamente el iterador
+			free(nueva_tabla);
+			return false;
+		}
+
+		while (!lista_iter_al_final(iter_lista)){
+			nodo_hash_t* nodo = lista_iter_ver_actual(iter_lista); //devuelve un nodo
+			nueva_pos = hash->funcion_hash(nodo->clave) % nueva_capacidad; //obtengo la nueva posicion a la que ira
+			if (!lista_insertar_primero(nueva_tabla[nueva_pos], nodo)){ //nueva_tabla[pos] devuelve una lista
+				//si falla insertar, libero la memoria pedida para la nueva tabla
+				free(nueva_tabla);
+				return false;
+			}
+			lista_iter_avanzar(iter_lista);
+		}
+		lista_iter_destruir(iter_lista);
+	}
+	free(hash->tabla_hash);  //cuando salis de este for ya copiaste todas las cosas a la nueva tabla de hash, elimina la vieja
+	hash->tabla_hash = nueva_tabla;
+	hash->tam_tabla = nueva_capacidad; //los otros miembros del struct no cambian
+	return true;
+}
 /******************************************************************************
 *							FUNCION DE HASHING 																							*
 ******************************************************************************/
