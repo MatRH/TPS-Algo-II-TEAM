@@ -183,33 +183,38 @@ hash_iter_t *hash_iter_crear(const hash_t *hash){
 }
 
 bool hash_iter_avanzar(hash_iter_t *iter){
-	if (iter->hash->tam_tabla == iter->pos) return false; //estoy al final del hash
-
+	size_t tam_tabla = iter->hash->tam_tabla;
+	bool succes;
 	//Casos:
+	//0)estoy al final del hash
+	if (tam_tabla == iter->pos) return false;
 	//1)Estoy en una lista y el iterador no esta al final
 	if (!lista_iter_al_final(iter->iter_lista)){
-		return lista_iter_avanzar(iter->iter_lista);
+		succes = lista_iter_avanzar(iter->iter_lista);
+		//NO DEVUELVO NADA PORQUE PUEDO CAER EN 2
+		if(!succes) return false;
 	}
 	//2)Estoy en una lista pero el iterador esta al final
-	lista_iter_destruir(iter->iter_lista); //destruyo el iterador de la lista
-	iter->iter_lista = NULL;
-	size_t pos_nueva = buscar_lista_no_vacia(iter->hash, iter->pos + 1); //así busco a partir de la siguiente posicion
-	iter->pos = pos_nueva;
-	if (pos_nueva != iter->hash->tam_tabla){ //significa que sigo dentro de los limites de la tabla, si no entrp a este if llegue al final del hash
-		iter->iter_lista = lista_iter_crear(iter->hash->tabla_hash[pos_nueva]);
-		if (!iter->iter_lista) return false; //hubo problemas creando el iterador
+	if (lista_iter_al_final(iter->iter_lista)){
+		lista_iter_destruir(iter->iter_lista); //destruyo el iterador de la lista
+		iter->iter_lista = NULL;
+		size_t pos_nueva = buscar_lista_no_vacia(iter->hash, iter->pos + 1); //así busco a partir de la siguiente posicion
+		iter->pos = pos_nueva;
+		if (pos_nueva != tam_tabla){ //significa que sigo dentro de los limites de la tabla
+			iter->iter_lista = lista_iter_crear(iter->hash->tabla_hash[pos_nueva]);
+			if (!iter->iter_lista) return false; //hubo problemas creando el iterador
+		}
 	}
 	return true;
 }
 
 const char *hash_iter_ver_actual(const hash_iter_t *iter){
-	if (iter->pos == iter->hash->tam_tabla) return NULL;
+	size_t tam_tabla = iter->hash->tam_tabla;
+	if (iter->pos == tam_tabla) return NULL;		//el iterador está al final del hash
 
-	if (lista_iter_al_final(iter->iter_lista)) return NULL;
-
-	//Si llego a esta instancia tengo algo para devolver
-	//nodo_hash_t* nodo = lista_iter_ver_actual(iter->iter_lista);
-	//Falta terminar aca
+	lista_iter_t* iter_lista = iter->iter_lista;
+	nodo_hash_t* nodo = lista_iter_ver_actual(iter_lista);
+	return (nodo->clave);
 }
 
 bool hash_iter_al_final(const hash_iter_t *iter){
