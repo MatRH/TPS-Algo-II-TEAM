@@ -75,9 +75,9 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 }
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
-	//Aplico la funcion de hash a la clave para saber en que posicion de la lista guardo
-	//lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla];
-	//1)Chequeo que no pase el factor de carga
+	//DEBUG
+	printf("Guardando en el hash con la clave '%s'\n", clave);
+
 	size_t ocupada = hash->cant_elem / hash->tam_tabla;
 	size_t nueva_capacidad = 2 * hash->tam_tabla - 1; //evito que de par, no se como hacer para que quede primo
 	if (ocupada > FACTOR_DE_CARGA){
@@ -136,8 +136,11 @@ bool hash_pertenece(const hash_t *hash, const char *clave){
 	return pertenece;
 }
 
-
 void *hash_obtener(const hash_t *hash, const char *clave){
+	//DEBUG
+	printf("Obteniendo del hash con la clave '%s'\n", clave);
+
+
  	size_t pos_hash = (hash->funcion_hash(clave)) % hash->tam_tabla; //obtengo la posicion de la tabla donde debo buscar
 	void* dato = NULL;
 	acceder_clave(hash, pos_hash, clave, dato, false, true); //devuelve truee si esta

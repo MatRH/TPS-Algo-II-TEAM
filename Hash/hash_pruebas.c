@@ -52,6 +52,9 @@ static void prueba_hash_insertar()
     char *clave2 = "gato", *valor2 = "miau";
     char *clave3 = "vaca", *valor3 = "mu";
 
+    printf("Clave 1: %s, Valor: %s\n", clave1, valor1 );
+    printf("Clave 2: %s, Valor: %s\n", clave3 , valor2 );
+    printf("Clave 3: %s, Valor: %s\n", clave3, valor3  );
     /* Inserta 1 valor y luego lo borra */
     print_test("Prueba hash insertar clave1", hash_guardar(hash, clave1, valor1));
     print_test("Prueba hash la cantidad de elementos es 1", hash_cantidad(hash) == 1);
