@@ -18,12 +18,12 @@ struct lista{
 	size_t cant;
 };
 
-typedef struct lista_iter{
+struct lista_iter{
 	struct lista* lista;
 	nodo_t* actual;
 	nodo_t* anterior;
 	size_t posicion;
-}lista_iter_t;
+};
 
 
 /* ******************************************************************
