@@ -106,7 +106,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 	if (!lista_hash) return NULL; //la lista esta vacia, por ende no va a estar
 
 	//Redimensiono para abajo
-	float ocupada = (float)hash->cant_elem / hash->tam_tabla; //chequear casteo
+	float ocupada = (float)(hash->cant_elem / hash->tam_tabla); //chequear casteo
 	size_t nueva_capacidad = hash->tam_tabla / 2; //no se como hacer que de primo
 	if (ocupada <  FACTOR_REDUCCION && hash->cant_elem > 100){ //redimensiono //CHEQUEAR ESE 100
 		if (!hash_redimensionar(hash, nueva_capacidad)) return NULL;
@@ -208,7 +208,7 @@ const char *hash_iter_ver_actual(const hash_iter_t *iter){
 	if (lista_iter_al_final(iter->iter_lista)) return NULL;
 
 	//Si llego a esta instancia tengo algo para devolver
-	nodo_hash_t* nodo = lista_iter_ver_actual(iter->iter_lista);
+	//nodo_hash_t* nodo = lista_iter_ver_actual(iter->iter_lista);
 	//Falta terminar aca
 }
 
@@ -289,7 +289,8 @@ bool poner_listas_vacias(lista_t** tabla_hash, size_t tam_hash){
 	for (size_t i = 0; i < tam_hash; i++){
 		lista_t* lista = lista_crear();
 		if (!lista){
-			for (--i; i >= 0; i--){ //tendra problemas si falla a la primera? porque i seria -1 y es size_t su tipo???
+			while (i > 0){ //si i == 0 entonces no hago nada, sino borro las listas que sobran
+				i--;
 				lista_destruir(tabla_hash[i], NULL); //tabla_hash[i] te va a dar una lista
 			}
 			return false;
