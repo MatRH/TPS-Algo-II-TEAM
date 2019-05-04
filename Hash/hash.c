@@ -80,6 +80,10 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 
 	size_t ocupada = hash->cant_elem / hash->tam_tabla;
 	size_t nueva_capacidad = 2 * hash->tam_tabla - 1; //evito que de par, no se como hacer para que quede primo
+
+	//DEBUG
+	printf("Ocupadas: '%ld' Factor de Carga: %d \n", ocupada, FACTOR_DE_CARGA);
+
 	if (ocupada > FACTOR_DE_CARGA){
 		if (!hash_redimensionar(hash, nueva_capacidad)) return false;
 	}
@@ -87,18 +91,31 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	size_t indice = (hash->funcion_hash(clave)) % hash->tam_tabla;//obtenes en que lista vas a guardar
 	char* copia_clave = strdup(clave);
 	lista_t* lista_hash = hash->tabla_hash[indice];
-		if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
+
+	//DEBUG
+	printf("Indice: '%ld'\n", indice);
+
+	if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
+
+		//DEBUG
+		printf("La lista está vacía antes de guardar\n");
+
 		nodo_hash_t* nodo_hash = crear_nodo_hash(dato, copia_clave);
 		if (!nodo_hash) return false;
 		return guardar_elemento(hash, lista_hash, nodo_hash);
-	}
-	//Busco si la clave esta en la lista
+		}
+		
+		//Busco si la clave esta en la lista
 	if(!acceder_clave(hash, indice, copia_clave, dato, true, false)){ //si esta quiero reemplazar por eso el true
+
+		//DEBUG
+		printf("La lista NO está vacía antes de guardar\n");
+
 		nodo_hash_t* nodo_hash = crear_nodo_hash(dato, copia_clave);
 		if (!nodo_hash) return false;
 		return guardar_elemento(hash, lista_hash, nodo_hash);
 	}
-	return true;
+		return true;
 }
 
 void *hash_borrar(hash_t *hash, const char *clave){
