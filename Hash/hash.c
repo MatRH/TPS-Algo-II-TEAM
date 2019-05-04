@@ -104,7 +104,7 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 		if (!nodo_hash) return false;
 		return guardar_elemento(hash, lista_hash, nodo_hash);
 		}
-		
+
 		//Busco si la clave esta en la lista
 	if(!acceder_clave(hash, indice, copia_clave, dato, true, false)){ //si esta quiero reemplazar por eso el true
 
@@ -154,13 +154,19 @@ bool hash_pertenece(const hash_t *hash, const char *clave){
 }
 
 void *hash_obtener(const hash_t *hash, const char *clave){
-	//DEBUG
-	printf("Obteniendo del hash con la clave '%s'\n", clave);
-
-
  	size_t pos_hash = (hash->funcion_hash(clave)) % hash->tam_tabla; //obtengo la posicion de la tabla donde debo buscar
 	void* dato = NULL;
-	acceder_clave(hash, pos_hash, clave, dato, false, true); //devuelve truee si esta
+
+	//DEBUG
+	printf("Obteniendo del hash con la clave '%s'\n", clave);
+	printf("Posicion en el hash '%ld'\n", pos_hash);
+
+	bool succes = acceder_clave(hash, pos_hash, clave, dato, false, true); //devuelve true si está
+
+	//DEBUG
+	if(succes)printf("Se encontró la clave\n");
+	if(!succes)printf("NO se encontró la clave\n");
+
 	return dato;
  }
 
