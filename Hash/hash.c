@@ -38,7 +38,7 @@ struct hash_iter{
 size_t hash_djb2(const char *str); //funcion de HASH_H
 nodo_hash_t* crear_nodo_hash(void* dato, char* clave);
 bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
-bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void* dato, bool reemplazar, bool obtener);
+bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void** dato, bool reemplazar, bool obtener);
 char *strdup(const char *s);
 size_t buscar_lista_no_vacia(const hash_t* hash, size_t pos);
 bool poner_listas_vacias(lista_t** tabla_hash, size_t tam_hash);
@@ -107,7 +107,7 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 		}
 
 		//Busco si la clave esta en la lista
-	if(!acceder_clave(hash, indice, copia_clave, dato, true, false)){ //si esta quiero reemplazar por eso el true
+	if(!acceder_clave(hash, indice, copia_clave, &dato, true, false)){ //si esta quiero reemplazar por eso el true
 
 		//DEBUG
 		printf("La lista NO está vacía antes de guardar\n");
@@ -157,7 +157,7 @@ bool hash_pertenece(const hash_t *hash, const char *clave){
 
 void *hash_obtener(const hash_t *hash, const char *clave){
  	size_t pos_hash = (hash->funcion_hash(clave)) % hash->tam_tabla; //obtengo la posicion de la tabla donde debo buscar
-	void* dato = NULL;
+	void** dato = malloc(sizeof(void*));
 
 	//DEBUG
 	printf("Entrada a la función HASH OBTENER\n");
@@ -169,9 +169,10 @@ void *hash_obtener(const hash_t *hash, const char *clave){
 	//DEBUG
 	if(succes)printf("Se encontró la clave\n");
 	if(!succes)printf("NO se encontró la clave\n");
-	printf("Dato obtenido: '%p'\n", dato);
+	printf("Dato obtenido: '%p'\n", *dato);
 
-	return dato;
+	return *dato;
+	free(dato);
  }
 
 size_t hash_cantidad(const hash_t *hash){
@@ -296,7 +297,7 @@ una clave, un puntero a un dato, y un bool reemplazar y bool obtener.
 Si reemplazar es true -> actualiza la copia_clave
 Si obtener es true -> devuelve el dato asociado a la clave en el puntero pasado
 */
-bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void* dato, bool reemplazar, bool obtener){
+bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void** dato, bool reemplazar, bool obtener){
 	/*Si la clave no esta devuelve false. En caso de que este
 	la actualiza y devuelve true.*/
 	lista_t* lista = hash->tabla_hash[indice_tabla];
@@ -327,15 +328,15 @@ bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, v
 				printf("Reemplazando\n" );
 
 				hash->funcion_destruc(nodo->dato); //destrui el dato viejo
-				nodo->dato = dato; //guardo el dato actualizado
+				nodo->dato = *dato; //guardo el dato actualizado
 			}
 			if (obtener){ //apunto dato al dato guardado
-				dato = nodo->dato;
+				*dato = nodo->dato;
 
 				//DEBUG
 				printf("Obteniendo\n" );
 				printf("Dato obtenido: %p\n", nodo->dato);
-				printf("Dato devuelto: %p\n", dato);
+				printf("Dato devuelto: %p\n", *dato);
 
 
 			}
