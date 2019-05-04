@@ -77,6 +77,7 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	//DEBUG
 	printf("Guardando en el hash con la clave '%s'\n", clave);
+	printf("Guardando el Dato: '%p'\n", dato);
 
 	size_t ocupada = hash->cant_elem / hash->tam_tabla;
 	size_t nueva_capacidad = 2 * hash->tam_tabla - 1; //evito que de par, no se como hacer para que quede primo
@@ -159,6 +160,7 @@ void *hash_obtener(const hash_t *hash, const char *clave){
 	void* dato = NULL;
 
 	//DEBUG
+	printf("Entrada a la función HASH OBTENER\n");
 	printf("Obteniendo del hash con la clave '%s'\n", clave);
 	printf("Posicion en el hash '%ld'\n", pos_hash);
 
@@ -167,6 +169,7 @@ void *hash_obtener(const hash_t *hash, const char *clave){
 	//DEBUG
 	if(succes)printf("Se encontró la clave\n");
 	if(!succes)printf("NO se encontró la clave\n");
+	printf("Dato obtenido: '%p'\n", dato);
 
 	return dato;
  }
@@ -269,7 +272,6 @@ void hash_iter_destruir(hash_iter_t* iter){
 	}
 }
 
-
 //Funciones auxiliares
 nodo_hash_t* crear_nodo_hash(void* valor, char* clave){
 	/*Crea un nodo. Si falla el proceso de pedir memoria devuelve NULL.
@@ -288,6 +290,7 @@ bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo){
 	if (estado) hash->cant_elem ++; //aumento la cantidad de elementos
 	return estado;
 }
+
 /*Recibe un puntero a hash, el índice de la tabla en la que debe buscar,
 una clave, un puntero a un dato, y un bool reemplazar y bool obtener.
 Si reemplazar es true -> actualiza la copia_clave
@@ -299,15 +302,42 @@ bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, v
 	lista_t* lista = hash->tabla_hash[indice_tabla];
 	nodo_hash_t* nodo;
 	lista_iter_t* iter = lista_iter_crear(lista);
+
+	//DEBUG
+	printf("Entrada a la función acceder clave\n");
+	printf("Accediendo a la clave '%s'\n", clave );
+	printf("Ubicada en el indice '%ld'\n", indice_tabla );
+	if(obtener) printf("Modo Obtener\n" );
+	if(reemplazar) printf("Modo Reemplazar\n");
+
 	while (!lista_iter_al_final(iter)){
 		nodo = lista_iter_ver_actual(iter); //te devuelve un nodo_hash_t
+
+		//DEBUG
+		printf("El iterador de la lista no está al final\n" );
+
 		if (!strcmp(clave, nodo->clave)){ //si da cero son iguales
+
+			//DEBUG
+			printf("Clave encontrada\n" );
+
 			if (reemplazar){ //la clave sigue siendo la misma, destruyo dato y guardo el nuevo
+
+				//DEBUG
+				printf("Reemplazando\n" );
+
 				hash->funcion_destruc(nodo->dato); //destrui el dato viejo
 				nodo->dato = dato; //guardo el dato actualizado
 			}
 			if (obtener){ //apunto dato al dato guardado
 				dato = nodo->dato;
+
+				//DEBUG
+				printf("Obteniendo\n" );
+				printf("Dato obtenido: %p\n", nodo->dato);
+				printf("Dato devuelto: %p\n", dato);
+
+
 			}
 			return true;
 		}
