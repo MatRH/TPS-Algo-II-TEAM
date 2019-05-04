@@ -77,7 +77,10 @@ static void prueba_hash_insertar()
     print_test("Prueba hash obtener clave3 es valor3", hash_obtener(hash, clave3) == valor3);
     print_test("Prueba hash pertenece clave3, es true", hash_pertenece(hash, clave3));
 
+    printf("Voy a destruir el hash\n"); //BORRA ESTO
     hash_destruir(hash);
+    printf("Destrui el hash correctamente\n"); //BORRA ESTO
+    printf("\nTERMINE ESTA SECCION DE PRUEBAS\n"); //BORRA ESTO
 }
 
 static void prueba_hash_reemplazar()
@@ -105,6 +108,7 @@ static void prueba_hash_reemplazar()
     print_test("Prueba hash la cantidad de elementos es 2", hash_cantidad(hash) == 2);
 
     hash_destruir(hash);
+    printf("\nTERMINE LA SECCION DOS DE PRUEBAS\n"); //BORRA ESTO
 }
 
 static void prueba_hash_reemplazar_con_destruir()

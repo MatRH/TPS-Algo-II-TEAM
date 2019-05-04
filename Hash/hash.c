@@ -139,6 +139,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 			free(nodo->clave);//libero la copia de la clave
 			free(nodo);
 			lista_iter_destruir(iter);
+			hash->cant_elem--; //actualizo cantidad de elementos
 			return dato; //el usuario se encarga de liberar esto
 		}
 		lista_iter_avanzar(iter);
@@ -182,7 +183,10 @@ void hash_destruir(hash_t *hash){
 
 		while (!lista_iter_al_final(lista_iter)){ //recorro la lista
 			nodo_hash_t* nodo_actual = lista_iter_ver_actual(lista_iter);
-			hash->funcion_destruc(nodo_actual->dato); //aplico la funcion al dato
+			if (hash->funcion_destruc){
+				hash->funcion_destruc(nodo_actual->dato); //aplico la funcion al dato
+			} //la funcion de destruccion puede ser NULL
+			printf("Destrui el dato\n");
 			free(nodo_actual->clave); //borro la copia de la clave
 			free(nodo_actual);			//borro el nodo
 			lista_iter_avanzar(lista_iter); //Avanzo a la prox posicion
@@ -191,6 +195,8 @@ void hash_destruir(hash_t *hash){
 		lista_destruir(lista_actual, NULL);	 //borro la lista ahora vacia
 		pos++;
 	}
+	printf("Sali del while de destruccion\n");
+	free(hash->tabla_hash); //liberamos la tabla
 	free(hash);		//borro el hash
 }
 
