@@ -80,7 +80,7 @@ static void prueba_hash_insertar()
     printf("Voy a destruir el hash\n"); //BORRA ESTO
     hash_destruir(hash);
     printf("Destrui el hash correctamente\n"); //BORRA ESTO
-    printf("\nTERMINE ESTA SECCION DE PRUEBAS\n"); //BORRA ESTO
+    printf("\nTERMINE SECCION DE PRUEBAS 1--------------------------------------------------------\n"); //BORRA ESTO
 }
 
 static void prueba_hash_reemplazar()
@@ -108,7 +108,7 @@ static void prueba_hash_reemplazar()
     print_test("Prueba hash la cantidad de elementos es 2", hash_cantidad(hash) == 2);
 
     hash_destruir(hash);
-    printf("\nTERMINE LA SECCION DOS DE PRUEBAS\n"); //BORRA ESTO
+    printf("\n----------------------------------TERMINE SECCION DE PRUEBAS 2--------------------------------------------------------\n"); //BORRA ESTO
 }
 
 static void prueba_hash_reemplazar_con_destruir()
@@ -143,6 +143,7 @@ static void prueba_hash_reemplazar_con_destruir()
 
     /* Se destruye el hash (se debe liberar lo que quedó dentro) */
     hash_destruir(hash);
+    printf("\n----------------------------------TERMINE SECCION DE PRUEBAS 3--------------------------------------------------------\n"); //BORRA ESTO
 }
 
 static void prueba_hash_borrar()
@@ -181,6 +182,7 @@ static void prueba_hash_borrar()
     print_test("Prueba hash la cantidad de elementos es 0", hash_cantidad(hash) == 0);
 
     hash_destruir(hash);
+    printf("\n----------------------------------TERMINE SECCION DE PRUEBAS 4--------------------------------------------------------\n"); //BORRA ESTO
 }
 
 static void prueba_hash_clave_vacia()
@@ -197,6 +199,7 @@ static void prueba_hash_clave_vacia()
     print_test("Prueba hash la cantidad de elementos es 0", hash_cantidad(hash) == 0);
 
     hash_destruir(hash);
+    printf("\n----------------------------------TERMINE SECCION DE PRUEBAS 5--------------------------------------------------------\n"); //BORRA ESTO
 }
 
 static void prueba_hash_valor_null()
@@ -214,6 +217,7 @@ static void prueba_hash_valor_null()
     print_test("Prueba hash la cantidad de elementos es 0", hash_cantidad(hash) == 0);
 
     hash_destruir(hash);
+    printf("\n----------------------------------TERMINE SECCION DE PRUEBAS 6--------------------------------------------------------\n"); //BORRA ESTO
 }
 
 static void prueba_hash_volumen(size_t largo, bool debug)
@@ -273,6 +277,8 @@ static void prueba_hash_volumen(size_t largo, bool debug)
 
     /* Destruye el hash - debería liberar los enteros */
     hash_destruir(hash);
+
+    printf("\n----------------------------------TERMINE SECCION DE PRUEBAS 7--------------------------------------------------------\n"); //BORRA ESTO
 
 }
 
@@ -334,6 +340,7 @@ static void prueba_hash_iterar()
 
     hash_iter_destruir(iter);
     hash_destruir(hash);
+    printf("\n----------------------------------TERMINE SECCION DE PRUEBAS 8--------------------------------------------------------\n"); //BORRA ESTO
 }
 
 static void prueba_hash_iterar_volumen(size_t largo)
@@ -397,6 +404,7 @@ static void prueba_hash_iterar_volumen(size_t largo)
     free(claves);
     hash_iter_destruir(iter);
     hash_destruir(hash);
+    printf("\n----------------------------------TERMINE SECCION DE PRUEBAS 9--------------------------------------------------------\n"); //BORRA ESTO
 }
 
 /* ******************************************************************

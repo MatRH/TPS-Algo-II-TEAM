@@ -135,7 +135,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 	lista_iter_t* iter = lista_iter_crear(lista_hash);
 	while (!lista_iter_al_final(iter)){
 		if(!strcmp(((nodo_hash_t*)lista_iter_ver_actual(iter))->clave, clave)){
-			nodo = lista_iter_borrar(iter); //devuelve un nodo_hash_t
+			nodo = lista_iter_ver_actual(iter); //devuelve un nodo_hash_t
 			dato = nodo->dato;
 			free(nodo->clave);//libero la copia de la clave
 			free(nodo);
@@ -168,9 +168,12 @@ void *hash_obtener(const hash_t *hash, const char *clave){
 
 	//DEBUG
 	if(succes)printf("Se encontró la clave\n");
-	if(!succes)printf("NO se encontró la clave\n");
-	printf("Dato obtenido: '%p'\n", *dato);
-
+	if(!succes){
+		printf("NO se encontró la clave\n");
+		free(*dato);
+		return NULL;
+		printf("Dato obtenido: '%p'\n", *dato);
+	}
 	return *dato;
 	free(dato);
  }
@@ -180,6 +183,7 @@ size_t hash_cantidad(const hash_t *hash){
 }
 
 void hash_destruir(hash_t *hash){
+	printf("INICIO DESTRUCCION DEL HASH\n"); //DEBUG
 	size_t pos = 0;
 	while(pos < hash->tam_tabla){ //recorro la tabla
 		lista_t* lista_actual = hash->tabla_hash[pos];
@@ -189,8 +193,8 @@ void hash_destruir(hash_t *hash){
 			nodo_hash_t* nodo_actual = lista_iter_ver_actual(lista_iter);
 			if (hash->funcion_destruc){
 				hash->funcion_destruc(nodo_actual->dato); //aplico la funcion al dato
+				printf("Destrui el dato\n"); //DEBUG
 			} //la funcion de destruccion puede ser NULL
-			printf("Destrui el dato\n");
 			free(nodo_actual->clave); //borro la copia de la clave
 			free(nodo_actual);			//borro el nodo
 			lista_iter_avanzar(lista_iter); //Avanzo a la prox posicion
@@ -326,8 +330,10 @@ bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, v
 
 				//DEBUG
 				printf("Reemplazando\n" );
-
-				hash->funcion_destruc(nodo->dato); //destrui el dato viejo
+				if (hash->funcion_destruc){ //puede ser la funcion NULL
+					hash->funcion_destruc(nodo->dato); //destrui el dato viejo
+					printf("Destrui el dato\n");  //DEBUG
+				}
 				nodo->dato = *dato; //guardo el dato actualizado
 			}
 			if (obtener){ //apunto dato al dato guardado
