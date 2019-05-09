@@ -133,7 +133,26 @@ void *hash_borrar(hash_t *hash, const char *clave){
 	void* dato;
 	nodo_hash_t* nodo;
 	lista_iter_t* iter = lista_iter_crear(lista_hash);
+
 	while (!lista_iter_al_final(iter)){
+		nodo = lista_iter_ver_actual(iter); //te devuelve un nodo
+		if (!strcmp(nodo->clave, clave)){ //encontre al que quiero borrar
+			lista_iter_borrar(iter); //borro el nodo de la lista
+			dato = nodo->dato;
+			free(nodo->clave);
+			free(nodo);
+			lista_iter_destruir(iter);
+			hash->cant_elem--;
+			return dato;
+		}
+		lista_iter_avanzar(iter);
+	}//lista iter borrar devuelve un void* , me podria dar el nodo y listo
+	//si salgo del while el dato no estaba, debo devolver NULL
+	lista_iter_destruir(iter);
+	return NULL;
+
+
+	/*while (!lista_iter_al_final(iter)){
 		if(!strcmp(((nodo_hash_t*)lista_iter_ver_actual(iter))->clave, clave)){
 			nodo = lista_iter_ver_actual(iter); //devuelve un nodo_hash_t
 			dato = nodo->dato;
@@ -146,7 +165,7 @@ void *hash_borrar(hash_t *hash, const char *clave){
 		lista_iter_avanzar(iter);
 	}
 	lista_iter_destruir(iter);
-	return NULL;
+	return NULL;*/
 }
 
 bool hash_pertenece(const hash_t *hash, const char *clave){
@@ -175,7 +194,7 @@ void *hash_obtener(const hash_t *hash, const char *clave){
 		printf("Dato obtenido: '%p'\n", *dato);
 	}
 	return *dato;
-	free(dato);
+	free(dato); //este free no puede estar
  }
 
 size_t hash_cantidad(const hash_t *hash){
