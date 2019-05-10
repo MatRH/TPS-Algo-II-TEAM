@@ -186,15 +186,15 @@ void *hash_obtener(const hash_t *hash, const char *clave){
 	bool succes = acceder_clave(hash, pos_hash, clave, dato, false, true); //devuelve true si está
 
 	//DEBUG
-	//if(succes)printf("Se encontró la clave\n");
+	if(succes)printf("Se encontró la clave\n");
 	if(!succes){
 		//printf("NO se encontró la clave\n");
-		free(*dato);
+		free(dato);
 		return NULL;
 		//printf("Dato obtenido: '%p'\n", *dato);
 	}
 	return *dato;
-	free(dato); //este free no puede estar
+	free(dato); //dato es el puntero al puntero del dato de lo que habia adentro del hash hay que liberarlo
  }
 
 size_t hash_cantidad(const hash_t *hash){
