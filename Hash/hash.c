@@ -186,7 +186,7 @@ void *hash_obtener(const hash_t *hash, const char *clave){
 	bool succes = acceder_clave(hash, pos_hash, clave, dato, false, true); //devuelve true si está
 
 	//DEBUG
-	if(succes)printf("Se encontró la clave\n");
+	//if(succes)printf("Se encontró la clave\n");
 	if(!succes){
 		//printf("NO se encontró la clave\n");
 		free(dato);
