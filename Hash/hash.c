@@ -76,14 +76,14 @@ hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
 
 bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	//DEBUG
-	printf("Guardando en el hash con la clave '%s'\n", clave);
-	printf("Guardando el Dato: '%p'\n", dato);
+	//printf("Guardando en el hash con la clave '%s'\n", clave);
+	//printf("Guardando el Dato: '%p'\n", dato);
 
 	size_t ocupada = hash->cant_elem / hash->tam_tabla;
 	size_t nueva_capacidad = 2 * hash->tam_tabla - 1; //evito que de par, no se como hacer para que quede primo
 
 	//DEBUG
-	printf("Ocupadas: '%ld' Factor de Carga: %d \n", ocupada, FACTOR_DE_CARGA);
+	//printf("Ocupadas: '%ld' Factor de Carga: %d \n", ocupada, FACTOR_DE_CARGA);
 
 	if (ocupada > FACTOR_DE_CARGA){
 		if (!hash_redimensionar(hash, nueva_capacidad)) return false;
@@ -94,12 +94,12 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	lista_t* lista_hash = hash->tabla_hash[indice];
 
 	//DEBUG
-	printf("Indice: '%ld'\n", indice);
+	//printf("Indice: '%ld'\n", indice);
 
 	if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
 
 		//DEBUG
-		printf("La lista está vacía antes de guardar\n");
+		//printf("La lista está vacía antes de guardar\n");
 
 		nodo_hash_t* nodo_hash = crear_nodo_hash(dato, copia_clave);
 		if (!nodo_hash) return false;
@@ -110,7 +110,7 @@ bool hash_guardar(hash_t *hash, const char *clave, void *dato){
 	if(!acceder_clave(hash, indice, copia_clave, &dato, true, false)){ //si esta quiero reemplazar por eso el true
 
 		//DEBUG
-		printf("La lista NO está vacía antes de guardar\n");
+		//printf("La lista NO está vacía antes de guardar\n");
 
 		nodo_hash_t* nodo_hash = crear_nodo_hash(dato, copia_clave);
 		if (!nodo_hash) return false;
@@ -179,19 +179,19 @@ void *hash_obtener(const hash_t *hash, const char *clave){
 	void** dato = malloc(sizeof(void*));
 
 	//DEBUG
-	printf("Entrada a la función HASH OBTENER\n");
-	printf("Obteniendo del hash con la clave '%s'\n", clave);
-	printf("Posicion en el hash '%ld'\n", pos_hash);
+	//printf("Entrada a la función HASH OBTENER\n");
+	//printf("Obteniendo del hash con la clave '%s'\n", clave);
+	//printf("Posicion en el hash '%ld'\n", pos_hash);
 
 	bool succes = acceder_clave(hash, pos_hash, clave, dato, false, true); //devuelve true si está
 
 	//DEBUG
-	if(succes)printf("Se encontró la clave\n");
+	//if(succes)printf("Se encontró la clave\n");
 	if(!succes){
-		printf("NO se encontró la clave\n");
+		//printf("NO se encontró la clave\n");
 		free(*dato);
 		return NULL;
-		printf("Dato obtenido: '%p'\n", *dato);
+		//printf("Dato obtenido: '%p'\n", *dato);
 	}
 	return *dato;
 	free(dato); //este free no puede estar
@@ -212,7 +212,7 @@ void hash_destruir(hash_t *hash){
 			nodo_hash_t* nodo_actual = lista_iter_ver_actual(lista_iter);
 			if (hash->funcion_destruc){
 				hash->funcion_destruc(nodo_actual->dato); //aplico la funcion al dato
-				printf("Destrui el dato\n"); //DEBUG
+				//printf("Destrui el dato\n"); //DEBUG
 			} //la funcion de destruccion puede ser NULL
 			free(nodo_actual->clave); //borro la copia de la clave
 			free(nodo_actual);			//borro el nodo
@@ -328,30 +328,30 @@ bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, v
 	lista_iter_t* iter = lista_iter_crear(lista);
 
 	//DEBUG
-	printf("Entrada a la función acceder clave\n");
-	printf("Accediendo a la clave '%s'\n", clave );
-	printf("Ubicada en el indice '%ld'\n", indice_tabla );
-	if(obtener) printf("Modo Obtener\n" );
-	if(reemplazar) printf("Modo Reemplazar\n");
+	//printf("Entrada a la función acceder clave\n");
+	//printf("Accediendo a la clave '%s'\n", clave );
+	//printf("Ubicada en el indice '%ld'\n", indice_tabla );
+	//if(obtener) printf("Modo Obtener\n" );
+	//if(reemplazar) printf("Modo Reemplazar\n");
 
 	while (!lista_iter_al_final(iter)){
 		nodo = lista_iter_ver_actual(iter); //te devuelve un nodo_hash_t
 
 		//DEBUG
-		printf("El iterador de la lista no está al final\n" );
+		//printf("El iterador de la lista no está al final\n" );
 
 		if (!strcmp(clave, nodo->clave)){ //si da cero son iguales
 
 			//DEBUG
-			printf("Clave encontrada\n" );
+			//printf("Clave encontrada\n" );
 
 			if (reemplazar){ //la clave sigue siendo la misma, destruyo dato y guardo el nuevo
 
 				//DEBUG
-				printf("Reemplazando\n" );
+				//printf("Reemplazando\n" );
 				if (hash->funcion_destruc){ //puede ser la funcion NULL
 					hash->funcion_destruc(nodo->dato); //destrui el dato viejo
-					printf("Destrui el dato\n");  //DEBUG
+					//printf("Destrui el dato\n");  //DEBUG
 				}
 				nodo->dato = *dato; //guardo el dato actualizado
 			}
@@ -359,9 +359,9 @@ bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, v
 				*dato = nodo->dato;
 
 				//DEBUG
-				printf("Obteniendo\n" );
-				printf("Dato obtenido: %p\n", nodo->dato);
-				printf("Dato devuelto: %p\n", *dato);
+				//printf("Obteniendo\n" );
+				//printf("Dato obtenido: %p\n", nodo->dato);
+				//printf("Dato devuelto: %p\n", *dato);
 
 
 			}
