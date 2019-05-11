@@ -47,7 +47,7 @@ bool rellenar_tabla(lista_t** tabla_hash, size_t tamanio);
 
 bool guardar_elemento(hash_t* hash, lista_t* lista, const char* clave, void* dato);
 
-nodo_hash_t* obtener_nodo(lista_t* lista, const char* clave);
+nodo_hash_t* obtener_nodo(lista_t* lista, const char* clave, bool destroy);
 
 size_t buscar_lista_no_vacia(const hash_t* hash, size_t pos);
 
@@ -123,33 +123,20 @@ void *hash_borrar(hash_t *hash, const char *clave){
 
 	void* dato;
 	lista_t* lista_actual = obtener_lista(hash, clave); //Obtengo la lista donde puede estar o no el elemento
-	
-	lista_iter_t* iter = lista_iter_crear(lista_actual);
-	if (!iter) return NULL; //No voy a poder obtener el dato
-
-	while (!lista_iter_al_final(iter)){
-		nodo_hash_t* nodo = lista_iter_ver_actual(iter); //te devuelve un nodo
-		if (!strcmp(nodo->clave, clave)){ //encontre al que quiero borrar
-			lista_iter_borrar(iter); //borro el nodo de la lista
-			dato = nodo->dato;
-			free(nodo->clave);
-			free(nodo);
-			lista_iter_destruir(iter);
-			hash->cant_elem--;
-			return dato;
-		}
-		lista_iter_avanzar(iter);
-	}//lista iter borrar devuelve un void* , me podria dar el nodo y listo
-	//si salgo del while el dato no estaba, debo devolver NULL
-	lista_iter_destruir(iter);
-	return NULL;
+	nodo_hash_t* nodo = obtener_nodo(lista_actual, clave, true); //puedo tener el nodo o algo NULL
+	if (!nodo) return NULL; //El elemento que quiero borrar no estaba en el hash
+	dato = nodo->dato;
+	free(nodo->clave);
+	free(nodo);
+	hash->cant_elem--;
+	return dato;
 }
 
 void *hash_obtener(const hash_t *hash, const char *clave){
 	lista_t* lista_actual = obtener_lista(hash, clave);
 
 
-	nodo_hash_t* nodo = obtener_nodo(lista_actual, clave);
+	nodo_hash_t* nodo = obtener_nodo(lista_actual, clave, false);
 	if (!nodo){
 		printf("No obtuve nodo\n");
 		return NULL; //La clave no estaba, caso contrario
@@ -330,13 +317,14 @@ bool guardar_elemento(hash_t* hash, lista_t* lista, const char* clave, void* dat
 	return true;
 }
 
-nodo_hash_t* obtener_nodo(lista_t* lista, const char* clave){
+nodo_hash_t* obtener_nodo(lista_t* lista, const char* clave, bool destroy){
 	lista_iter_t* iter = lista_iter_crear(lista);
 	if (!iter) return NULL;
 
 	while (!lista_iter_al_final(iter)){
 		nodo_hash_t* nodo = lista_iter_ver_actual(iter);
 		if (!strcmp(nodo->clave, clave)){
+			if (destroy) lista_iter_borrar(iter); //borro el elemento de la lista
 			lista_iter_destruir(iter);
 			return nodo;
 		}
@@ -392,6 +380,7 @@ bool hash_redimensionar(hash_t* hash, const size_t nueva_capacidad){
 			lista_iter_avanzar(iter_lista);
 		}
 		lista_iter_destruir(iter_lista);
+		lista_destruir(lista_actual, NULL);
 	}
 	free(hash->tabla_hash);  //cuando salis de este for ya copiaste todas las cosas a la nueva tabla de hash, elimina la vieja
 	hash->tabla_hash = nueva_tabla;
