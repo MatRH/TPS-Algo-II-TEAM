@@ -10,7 +10,7 @@ Corrector: Secchi, Ana
 #include "hash.h"
 #include "lista.h"
 #define TAMANIO_INICIAL (size_t) 53
-#define FACTOR_DE_CARGA 1 //Probar distintos valores, segun teorica puede ser 2 o 3 tmb
+#define FACTOR_DE_CARGA 1
 #define FACTOR_REDUCCION 0.75
 
 typedef struct nodo_hash{
@@ -35,197 +35,125 @@ struct hash_iter{
 };
 
 /*DECLARACIONES DE FUNCIONES AUZILIARES*/
-size_t hash_djb2(const char *str); //funcion de HASH_H
-nodo_hash_t* crear_nodo_hash(void* dato, char* clave);
-bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo);
-bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void** dato, bool reemplazar, bool obtener);
-char *strdup(const char *s);
+lista_t* obtener_lista(const hash_t* hash, const char* clave);
+nodo_hash_t* crear_nodo_hash(const char* clave, void* dato);
+bool search_or_replace(const hash_t* hash, lista_t* lista, const char* clave, void* dato, bool replace);
+bool rellenar_tabla(lista_t** tabla_hash, size_t tamanio);
+bool guardar_elemento(hash_t* hash, lista_t* lista, const char* clave, void* dato);
+nodo_hash_t* obtener_nodo(lista_t* lista, const char* clave, bool destroy);
 size_t buscar_lista_no_vacia(const hash_t* hash, size_t pos);
-bool poner_listas_vacias(lista_t** tabla_hash, size_t tam_hash);
 bool hash_redimensionar(hash_t* hash, const size_t nueva_capacidad);
+size_t hash_djb2(const char *str);
+char *strdup(const char *s);
 /* *****************************************************************
  *                  IMPLEMENTACION PRIMITIVAS DEL HASH
   * *****************************************************************/
 
-hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
-	hash_t* hash = malloc(sizeof(hash_t));
-	if (!hash) return NULL;
+	hash_t *hash_crear(hash_destruir_dato_t destruir_dato){
+		//Pido memoria para el struct
+		hash_t* hash = malloc(sizeof(hash_t));
+		if (!hash) return NULL;
 
-	hash->tabla_hash = malloc(sizeof(void*) * TAMANIO_INICIAL);
-	if (!hash->tabla_hash){
-		free(hash);
-		return NULL;
-	}
-	//bool estado = poner_listas_vacias(hash->tabla_hash, TAMANIO_INICIAL);
-	if (!poner_listas_vacias(hash->tabla_hash, TAMANIO_INICIAL)){
-		free(hash->tabla_hash);
-		free(hash);
-		return NULL;
-	}
-	/*creo que falta una funcion que recorra la lista creada y ponga listas vacias
-
-	o podriamos hacer que al agregar un dato si no tiene lista que la cree, para
-	no desperdiciar memoria*/
-
-	hash->cant_elem = 0;
-	hash->tam_tabla = TAMANIO_INICIAL;
-	hash->funcion_destruc = destruir_dato;
-	hash->funcion_hash = &hash_djb2;
-	return hash;
-}
-
-bool hash_guardar(hash_t *hash, const char *clave, void *dato){
-	//DEBUG
-	//printf("Guardando en el hash con la clave '%s'\n", clave);
-	//printf("Guardando el Dato: '%p'\n", dato);
-
-	size_t ocupada = hash->cant_elem / hash->tam_tabla;
-	size_t nueva_capacidad = 2 * hash->tam_tabla - 1; //evito que de par, no se como hacer para que quede primo
-
-	//DEBUG
-	//printf("Ocupadas: '%ld' Factor de Carga: %d \n", ocupada, FACTOR_DE_CARGA);
-
-	if (ocupada > FACTOR_DE_CARGA){
-		if (!hash_redimensionar(hash, nueva_capacidad)) return false;
-	}
-
-	size_t indice = (hash->funcion_hash(clave)) % hash->tam_tabla;//obtenes en que lista vas a guardar
-	char* copia_clave = strdup(clave);
-	lista_t* lista_hash = hash->tabla_hash[indice];
-
-	//DEBUG
-	//printf("Indice: '%ld'\n", indice);
-
-	if (lista_esta_vacia(lista_hash)){ //si da true guardas directamente
-
-		//DEBUG
-		//printf("La lista está vacía antes de guardar\n");
-
-		nodo_hash_t* nodo_hash = crear_nodo_hash(dato, copia_clave);
-		if (!nodo_hash) return false;
-		return guardar_elemento(hash, lista_hash, nodo_hash);
+		//Pido memoria para el arreglo de listas
+		hash->tabla_hash = malloc(sizeof(void*) * TAMANIO_INICIAL);
+		if (!hash->tabla_hash){
+			free(hash);
+			return NULL;
 		}
 
-		//Busco si la clave esta en la lista
-	if(!acceder_clave(hash, indice, copia_clave, &dato, true, false)){ //si esta quiero reemplazar por eso el true
+		//funcion para rellenar de listas vacias
+		if (!rellenar_tabla(hash->tabla_hash, TAMANIO_INICIAL)){ //Devuelve false en caso de error
+			free(hash->tabla_hash);
+			free(hash);
+			return NULL;
+		}
 
-		//DEBUG
-		//printf("La lista NO está vacía antes de guardar\n");
+		hash->cant_elem = 0;
+		hash->tam_tabla = TAMANIO_INICIAL;
+		hash->funcion_destruc = destruir_dato;
+		hash->funcion_hash = &hash_djb2;
+		return hash;
 
-		nodo_hash_t* nodo_hash = crear_nodo_hash(dato, copia_clave);
-		if (!nodo_hash) return false;
-		return guardar_elemento(hash, lista_hash, nodo_hash);
 	}
+
+	bool hash_guardar(hash_t *hash, const char *clave, void *dato){
+		size_t ocupada = hash->cant_elem / hash->tam_tabla;
+		size_t nueva_capacidad = 2 * hash->tam_tabla - 1; //evito que de par, no se como hacer para que quede primo
+
+		if (ocupada > FACTOR_DE_CARGA){
+			if (!hash_redimensionar(hash, nueva_capacidad)) return false; //fallo redimensionar
+		}
+
+		lista_t* lista_actual = obtener_lista(hash, clave);
+		if (lista_esta_vacia(lista_actual)){ //Se que el elemento no esta, guardo directamente
+			return guardar_elemento(hash, lista_actual, clave, dato);
+		}
+		//Si no entras a ese if, la lista no esta vacia
+		if (!search_or_replace(hash, lista_actual, clave, dato, true)){ // quiero reemplazar
+			//Si entro aqui es que no esta la clave
+			return guardar_elemento(hash, lista_actual, clave, dato);
+		}
 		return true;
-}
-
-void *hash_borrar(hash_t *hash, const char *clave){
-	lista_t* lista_hash = hash->tabla_hash[(hash->funcion_hash(clave)) % hash->tam_tabla];
-	if (!lista_hash) return NULL; //la lista esta vacia, por ende no va a estar
-
-	//Redimensiono para abajo
-	float ocupada = (float)(hash->cant_elem / hash->tam_tabla); //chequear casteo
-	size_t nueva_capacidad = hash->tam_tabla / 2; //no se como hacer que de primo
-	if (ocupada <  FACTOR_REDUCCION && hash->cant_elem > 100){ //redimensiono //CHEQUEAR ESE 100
-		if (!hash_redimensionar(hash, nueva_capacidad)) return NULL;
 	}
 
-	void* dato;
-	nodo_hash_t* nodo;
-	lista_iter_t* iter = lista_iter_crear(lista_hash);
-
-	while (!lista_iter_al_final(iter)){
-		nodo = lista_iter_ver_actual(iter); //te devuelve un nodo
-		if (!strcmp(nodo->clave, clave)){ //encontre al que quiero borrar
-			lista_iter_borrar(iter); //borro el nodo de la lista
-			dato = nodo->dato;
-			free(nodo->clave);
-			free(nodo);
-			lista_iter_destruir(iter);
-			hash->cant_elem--;
-			return dato;
+	void *hash_obtener(const hash_t *hash, const char *clave){
+		lista_t* lista_actual = obtener_lista(hash, clave);
+		nodo_hash_t* nodo = obtener_nodo(lista_actual, clave, false);
+		if (!nodo){
+			return NULL;
 		}
-		lista_iter_avanzar(iter);
-	}//lista iter borrar devuelve un void* , me podria dar el nodo y listo
-	//si salgo del while el dato no estaba, debo devolver NULL
-	lista_iter_destruir(iter);
-	return NULL;
+		return nodo->dato;
+	}
 
-
-	/*while (!lista_iter_al_final(iter)){
-		if(!strcmp(((nodo_hash_t*)lista_iter_ver_actual(iter))->clave, clave)){
-			nodo = lista_iter_ver_actual(iter); //devuelve un nodo_hash_t
-			dato = nodo->dato;
-			free(nodo->clave);//libero la copia de la clave
-			free(nodo);
-			lista_iter_destruir(iter);
-			hash->cant_elem--; //actualizo cantidad de elementos
-			return dato; //el usuario se encarga de liberar esto
+	void *hash_borrar(hash_t *hash, const char *clave){
+		//Redimensiono para abajo
+		float ocupada = (float)(hash->cant_elem / hash->tam_tabla);
+		size_t nueva_capacidad = hash->tam_tabla / 2; //no se como hacer que de primo
+		if (ocupada <  FACTOR_REDUCCION && hash->cant_elem > 100){
+			if (!hash_redimensionar(hash, nueva_capacidad)) return NULL; //Fallo redimensionar
 		}
-		lista_iter_avanzar(iter);
+		void* dato;
+		lista_t* lista_actual = obtener_lista(hash, clave); //Obtengo la lista donde puede estar o no el elemento
+		nodo_hash_t* nodo = obtener_nodo(lista_actual, clave, true); //puedo tener el nodo o algo NULL
+		if (!nodo) return NULL; //El elemento que quiero borrar no estaba en el hash
+		dato = nodo->dato;
+		free(nodo->clave);
+		free(nodo);
+		hash->cant_elem--;
+		return dato;
 	}
-	lista_iter_destruir(iter);
-	return NULL;*/
-}
 
-bool hash_pertenece(const hash_t *hash, const char *clave){
-	size_t pos_hash = (hash->funcion_hash(clave)) % hash->tam_tabla; //obtengo la posicion de la tabla donde debo buscar
-	bool pertenece = acceder_clave(hash, pos_hash, clave, NULL, false, false); //devuelve truee si esta
-	return pertenece;
-}
-
-void *hash_obtener(const hash_t *hash, const char *clave){
- 	size_t pos_hash = (hash->funcion_hash(clave)) % hash->tam_tabla; //obtengo la posicion de la tabla donde debo buscar
-	void** dato = malloc(sizeof(void*));
-
-	//DEBUG
-	//printf("Entrada a la función HASH OBTENER\n");
-	//printf("Obteniendo del hash con la clave '%s'\n", clave);
-	//printf("Posicion en el hash '%ld'\n", pos_hash);
-
-	bool succes = acceder_clave(hash, pos_hash, clave, dato, false, true); //devuelve true si está
-
-	//DEBUG
-	//if(succes)printf("Se encontró la clave\n");
-	if(!succes){
-		//printf("NO se encontró la clave\n");
-		free(dato);
-		return NULL;
-		//printf("Dato obtenido: '%p'\n", *dato);
+	bool hash_pertenece(const hash_t *hash, const char *clave){
+		lista_t* lista_actual = obtener_lista(hash, clave);
+		return search_or_replace(hash, lista_actual, clave, NULL, false);
 	}
-	return *dato;
-	free(dato); //dato es el puntero al puntero del dato de lo que habia adentro del hash hay que liberarlo
- }
 
-size_t hash_cantidad(const hash_t *hash){
-	return hash->cant_elem;
-}
+	size_t hash_cantidad(const hash_t *hash){
+		return hash->cant_elem;
+	}
 
-void hash_destruir(hash_t *hash){
-	printf("INICIO DESTRUCCION DEL HASH\n"); //DEBUG
-	size_t pos = 0;
-	while(pos < hash->tam_tabla){ //recorro la tabla
-		lista_t* lista_actual = hash->tabla_hash[pos];
-		lista_iter_t* lista_iter = lista_iter_crear(lista_actual);
-
-		while (!lista_iter_al_final(lista_iter)){ //recorro la lista
-			nodo_hash_t* nodo_actual = lista_iter_ver_actual(lista_iter);
-			if (hash->funcion_destruc){
-				hash->funcion_destruc(nodo_actual->dato); //aplico la funcion al dato
-				//printf("Destrui el dato\n"); //DEBUG
-			} //la funcion de destruccion puede ser NULL
-			free(nodo_actual->clave); //borro la copia de la clave
-			free(nodo_actual);			//borro el nodo
-			lista_iter_avanzar(lista_iter); //Avanzo a la prox posicion
+	void hash_destruir(hash_t* hash){
+		size_t pos_hash = 0;
+		while (pos_hash < hash->tam_tabla){
+			lista_t* lista_actual = hash->tabla_hash[pos_hash++];
+			lista_iter_t* lista_iter = lista_iter_crear(lista_actual);
+			while (!lista_iter_al_final(lista_iter)){
+				//aca la lista no esta vacia tiene datos y cosas
+				nodo_hash_t* nodo = lista_iter_ver_actual(lista_iter); //tengo un nodo
+				if (hash->funcion_destruc){
+					//Si estoy aca la funcion no es NULL
+					hash->funcion_destruc(nodo->dato);
+				}
+				free(nodo->clave);
+				free(nodo);
+				lista_iter_avanzar(lista_iter);
+			}
+			lista_iter_destruir(lista_iter);
+			lista_destruir(lista_actual, NULL); //la lista esta vacia
 		}
-		lista_iter_destruir(lista_iter); //borro el iterador
-		lista_destruir(lista_actual, NULL);	 //borro la lista ahora vacia
-		pos++;
+		free(hash->tabla_hash); //libero la tabla
+		free(hash); //libero el struct
 	}
-	printf("Sali del while de destruccion\n");
-	free(hash->tabla_hash); //liberamos la tabla
-	free(hash);		//borro el hash
-}
 
 /* *****************************************************************
  *            IMPLEMENTACION PRIMITIVAS DEL ITERADOR DEL HASH
@@ -296,74 +224,52 @@ void hash_iter_destruir(hash_iter_t* iter){
 	}
 }
 
-//Funciones auxiliares
-nodo_hash_t* crear_nodo_hash(void* valor, char* clave){
-	/*Crea un nodo. Si falla el proceso de pedir memoria devuelve NULL.
-	Caso contrario devuelve un nodo*/
-	nodo_hash_t *nodo_nuevo = malloc(sizeof(nodo_hash_t));
+/* *****************************************************************
+ *                      FUNCIONES AUXILIARES
+  * *****************************************************************/
 
- 	if (!nodo_nuevo) return NULL;
+nodo_hash_t* crear_nodo_hash(const char* clave, void* dato){
+		nodo_hash_t* nodo_hash = malloc(sizeof(nodo_hash_t));
+		if (!nodo_hash) return NULL;
 
- 	nodo_nuevo->dato = valor;
- 	nodo_nuevo->clave = clave;
- 	return nodo_nuevo;
+		nodo_hash->clave = strdup(clave);
+		nodo_hash->dato = dato;
+		return nodo_hash;
+	}
+
+bool guardar_elemento(hash_t* hash, lista_t* lista, const char* clave, void* dato){
+	nodo_hash_t* nodo_nuevo = crear_nodo_hash(clave, dato);
+	if (!nodo_nuevo) return false;
+
+	bool estado = lista_insertar_primero(lista, nodo_nuevo);
+	if (!estado){ //fallo guardar el elemento
+		if (hash->funcion_destruc) hash->funcion_destruc(nodo_nuevo->dato); //puede ser NULL la funcion
+		free(nodo_nuevo->clave);
+		free(nodo_nuevo);
+		return false; //Porque fallo guardar
+	}
+	hash->cant_elem++;
+	return true;
 }
 
-bool guardar_elemento(hash_t* hash, lista_t* lista, nodo_hash_t* nodo){
-	bool estado = lista_insertar_primero(lista, nodo); //da true o false
-	if (estado) hash->cant_elem ++; //aumento la cantidad de elementos
-	return estado;
+lista_t* obtener_lista(const hash_t* hash, const char* clave){
+	size_t pos_tabla = hash->funcion_hash(clave) % hash->tam_tabla;
+	return hash->tabla_hash[pos_tabla]; //Puede devolver listas vacias eh
 }
 
-/*Recibe un puntero a hash, el índice de la tabla en la que debe buscar,
-una clave, un puntero a un dato, y un bool reemplazar y bool obtener.
-Si reemplazar es true -> actualiza la copia_clave
-Si obtener es true -> devuelve el dato asociado a la clave en el puntero pasado
-*/
-bool acceder_clave(const hash_t* hash, size_t indice_tabla, const char* clave, void** dato, bool reemplazar, bool obtener){
-	/*Si la clave no esta devuelve false. En caso de que este
-	la actualiza y devuelve true.*/
-	lista_t* lista = hash->tabla_hash[indice_tabla];
-	nodo_hash_t* nodo;
+bool search_or_replace(const hash_t* hash, lista_t* lista, const char* clave, void* dato, bool replace){
 	lista_iter_t* iter = lista_iter_crear(lista);
-
-	//DEBUG
-	//printf("Entrada a la función acceder clave\n");
-	//printf("Accediendo a la clave '%s'\n", clave );
-	//printf("Ubicada en el indice '%ld'\n", indice_tabla );
-	//if(obtener) printf("Modo Obtener\n" );
-	//if(reemplazar) printf("Modo Reemplazar\n");
+	if (!iter) return false;
 
 	while (!lista_iter_al_final(iter)){
-		nodo = lista_iter_ver_actual(iter); //te devuelve un nodo_hash_t
-
-		//DEBUG
-		//printf("El iterador de la lista no está al final\n" );
-
-		if (!strcmp(clave, nodo->clave)){ //si da cero son iguales
-
-			//DEBUG
-			//printf("Clave encontrada\n" );
-
-			if (reemplazar){ //la clave sigue siendo la misma, destruyo dato y guardo el nuevo
-
-				//DEBUG
-				//printf("Reemplazando\n" );
-				if (hash->funcion_destruc){ //puede ser la funcion NULL
-					hash->funcion_destruc(nodo->dato); //destrui el dato viejo
-					//printf("Destrui el dato\n");  //DEBUG
+		nodo_hash_t* nodo = lista_iter_ver_actual(iter);
+		if (!strcmp(nodo->clave, clave)){
+			lista_iter_destruir(iter); //libero la memoria pedida para el iterador
+			if (replace){  //si replace es false significa que queria buscar, asi que devuelve true
+				if (hash->funcion_destruc){
+					hash->funcion_destruc(nodo->dato);
 				}
-				nodo->dato = *dato; //guardo el dato actualizado
-			}
-			if (obtener){ //apunto dato al dato guardado
-				*dato = nodo->dato;
-
-				//DEBUG
-				//printf("Obteniendo\n" );
-				//printf("Dato obtenido: %p\n", nodo->dato);
-				//printf("Dato devuelto: %p\n", *dato);
-
-
+				nodo->dato = dato;
 			}
 			return true;
 		}
@@ -382,19 +288,10 @@ size_t buscar_lista_no_vacia(const hash_t* hash, size_t pos){
 	return pos;
 }
 
-char *strdup(const char *s) {
-    size_t size = strlen(s) + 1;
-    char *p = malloc(size);
-    if (p != NULL) {
-        memcpy(p, s, size);
-    }
-    return p;
-}
-
-bool poner_listas_vacias(lista_t** tabla_hash, size_t tam_hash){
+bool rellenar_tabla(lista_t** tabla_hash, size_t tamanio){
 	/*A cada bloque de la tabla le agrega una lista vacia.
 	Devuelve false en caso de error*/
-	for (size_t i = 0; i < tam_hash; i++){
+	for (size_t i = 0; i < tamanio; i++){
 		lista_t* lista = lista_crear();
 		if (!lista){
 			while (i > 0){ //si i == 0 entonces no hago nada, sino borro las listas que sobran
@@ -408,6 +305,32 @@ bool poner_listas_vacias(lista_t** tabla_hash, size_t tam_hash){
 	return true;
 }
 
+char *strdup(const char *s) {
+    size_t size = strlen(s) + 1;
+    char *p = malloc(size);
+    if (p != NULL) {
+        memcpy(p, s, size);
+    }
+    return p;
+}
+
+nodo_hash_t* obtener_nodo(lista_t* lista, const char* clave, bool destroy){
+	lista_iter_t* iter = lista_iter_crear(lista);
+	if (!iter) return NULL;
+
+	while (!lista_iter_al_final(iter)){
+		nodo_hash_t* nodo = lista_iter_ver_actual(iter);
+		if (!strcmp(nodo->clave, clave)){
+			if (destroy) lista_iter_borrar(iter); //borro el elemento de la lista
+			lista_iter_destruir(iter);
+			return nodo;
+		}
+		lista_iter_avanzar(iter);
+	}
+	lista_iter_destruir(iter);
+	return NULL;
+}
+
 bool hash_redimensionar(hash_t* hash, const size_t nueva_capacidad){
 	/*Redimensiona el hash, en caso de error devuelve false*/
 	//1)Recorro cada posicion del hash viejo y hasheo cada elemento a la nueva tabla
@@ -415,7 +338,7 @@ bool hash_redimensionar(hash_t* hash, const size_t nueva_capacidad){
 	if (!nueva_tabla) return false;
 
 	//debo recorrerla y ponerle listas vacias
-	if (!poner_listas_vacias(nueva_tabla, nueva_capacidad)){ //si falla libero la memoria pedida
+	if (!rellenar_tabla(nueva_tabla, nueva_capacidad)){ //si falla libero la memoria pedida
 		free(nueva_tabla);
 		return false;
 	}
@@ -423,14 +346,14 @@ bool hash_redimensionar(hash_t* hash, const size_t nueva_capacidad){
 
 	for (size_t i = 0; i < hash->tam_tabla; i++){ //debes liberar las listas vacias, sino las perdes 4ever
 		lista_t* lista_actual = hash->tabla_hash[i];
-		if (!lista_actual){
+		if (lista_esta_vacia(lista_actual)){ //Si esta vacia borro directamente
 			lista_destruir(lista_actual, NULL);
 			continue;
 		}
 
 		lista_iter_t* iter_lista = lista_iter_crear(lista_actual);
 		if (!iter_lista){  //chequeo que se creo correctamente el iterador
-			free(nueva_tabla);
+			free(nueva_tabla); //deberia liberar todas las que puse hasta el momento, con las cosas que puse
 			return false;
 		}
 
@@ -445,14 +368,16 @@ bool hash_redimensionar(hash_t* hash, const size_t nueva_capacidad){
 			lista_iter_avanzar(iter_lista);
 		}
 		lista_iter_destruir(iter_lista);
+		lista_destruir(lista_actual, NULL);
 	}
 	free(hash->tabla_hash);  //cuando salis de este for ya copiaste todas las cosas a la nueva tabla de hash, elimina la vieja
 	hash->tabla_hash = nueva_tabla;
 	hash->tam_tabla = nueva_capacidad; //los otros miembros del struct no cambian
 	return true;
 }
+
 /******************************************************************************
-*							FUNCION DE HASHING 																							*
+*							FUNCIÓN DE HASHING 																							*
 ******************************************************************************/
 
 size_t hash_djb2(const char *str){
