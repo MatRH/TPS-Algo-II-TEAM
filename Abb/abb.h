@@ -4,6 +4,12 @@ Padrones: 102251, 99846
 Numero de grupo: 23
 Corrector: Secchi, Ana
 */
+#ifndef ABB_H
+#define ABB_H
+
+#include <stdbool.h>
+#include <stddef.h>
+
 typedef struct abb abb_t;
 
 typedef int (*abb_comparar_clave_t) (const char *, const char *);
@@ -51,3 +57,7 @@ size_t abb_cantidad(abb_t *arbol);
  * Post: La estructura abb fue destruida
  */
 void abb_destruir(abb_t *arbol);
+
+void pruebas_abb_alumno(void);
+
+#endif // ABB_H

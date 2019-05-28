@@ -9,10 +9,12 @@ Corrector: Secchi, Ana
 #include <stdlib.h>
 #include <string.h>
 #include "abb.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
 typedef struct nodo_abb{
 	struct nodo_abb* izq;
-	struct nodo abb* der;
+	struct nodo_abb* der;
 	char* clave;
 	void* dato;
 } nodo_abb_t;
@@ -26,6 +28,8 @@ struct abb{
 
 //DECLARACIONES FUNCIONES AUXILIARES
 nodo_abb_t* crear_nodo_abb(const char* clave, void* dato);
+bool master_search(const abb_t* abb, const char* clave, void* dato, int modo);
+bool buscar_clave(nodo_abb_t* raiz, const char* clave, nodo_abb_t* nodo_aux, abb_comparar_clave_t cmp);
 
 /* *****************************************************************
  *                  IMPLEMENTACION PRIMITIVAS DEL ABB
@@ -51,7 +55,7 @@ bool abb_pertenece(const abb_t *arbol, const char *clave){
 }
 
 void *abb_obtener(const abb_t *arbol, const char *clave){
-	nodo_abb_t* nodo;
+	nodo_abb_t* nodo = NULL;
 	return (master_search(arbol, clave, nodo, 2)) ? nodo->dato : NULL;
 }
 
@@ -73,7 +77,7 @@ nodo_abb_t* crear_nodo_abb(const char* clave, void* dato){
 		return nodo_abb;
 }
 
-bool master_search(abb_t* abb, const char* clave, void* dato, int modo){ //guardar: 1  obtener: 2 pertenece: 3
+bool master_search(const abb_t* abb, const char* clave, void* dato, int modo){ //guardar: 1  obtener: 2 pertenece: 3
 	if (!abb || (!abb->cant_elem && modo == 3)) return false; //bien para los tres casos
 	nodo_abb_t* nodo = NULL;
 
@@ -96,7 +100,7 @@ bool master_search(abb_t* abb, const char* clave, void* dato, int modo){ //guard
 
 			if (abb->func_cmp(nodo->clave, clave) > 0) nodo->izq = nuevo_nodo;
 			else nodo->der = nuevo_nodo;
-			abb->cant_elem++; //actualizo la cantidad de elementos
+			//abb->cant_elem ++; //explota, hay que hacerlo afuera parece que
 			return true;
 
 		case 2:
@@ -109,32 +113,7 @@ bool master_search(abb_t* abb, const char* clave, void* dato, int modo){ //guard
 
 		case 3: return pertenece;
 	}
-
-	/*if (modo == 3) return pertenece;
-
-	if (modo == 2){
-		if (pertenece){
-			dato = nodo->dato;
-			return true;
-		}
-		dato = NULL;
-		return false;
-	}
-	//A esta instancia modo 1 si o si
-	if (pertenece){ //reemplazo
-		if (abb->func_destruc){ //hay func de destruccion
-			abb->func_destruc(nodo->dato); //destruyo el dato viejo
-		}
-		nodo->dato = dato; //lo piso
-		return true;
-	}
-	//guardo el nuevo nodo
-	nodo_abb_t* nuevo_nodo =  crear_nodo_abb(clave, dato);
-	if (!nuevo_nodo) return false; //fallo la creacion del nodo
-
-	if (abb->func_cmp(nodo->clave, clave) > 0) nodo->izq = nuevo_nodo;
-	else nodo->der = nuevo_nodo;
-	return true;*/
+	return false;
 }
 
 bool buscar_clave(nodo_abb_t* raiz, const char* clave, nodo_abb_t* nodo_aux, abb_comparar_clave_t cmp){
