@@ -20,8 +20,9 @@ struct heap{
 };
 
 //Declaraciones funciones auxiliares
-
-
+void swap(void** arr, size_t pos, size_t max);
+void downheap(void** arr, size_t pos, size_t tam, cmp_func_t cmp);
+void** heapify(void** arr, cmp_func_t cmp, size_t n);
 /* *****************************************************************
  *                  IMPLEMENTACION PRIMITIVAS DEL HEAP
   * *****************************************************************/
@@ -44,7 +45,7 @@ heap_t *heap_crear_arr(void *arreglo[], size_t n, cmp_func_t cmp){
 	heap_t* heap = malloc(sizeof(heap_t));
 	if (!heap) return NULL;
 	//en la lista de correos dicen que hay que hacer una copia al parecer del arreglo
-	heap->datos = heapify(arreglo, cmp); // heapify devuelve un arreglo, aplicas heapify desde la pos (i/2) - 1, no se si estos parametros estan bien
+	heap->datos = heapify(arreglo, cmp, n); // heapify devuelve un arreglo, aplicas heapify desde la pos (i/2) - 1, no se si estos parametros estan bien
 	heap->cant_elem = n;
 	heap->capacidad = n + TAMANIO_INICIAL; //fijate esta despues
 	heap->cmp = cmp;
@@ -74,3 +75,33 @@ void heap_destruir(heap_t *heap, void destruir_elemento(void *e)){
 }
 
 //Funciones auxiliares
+void** heapify(void** arr, cmp_func_t cmp, size_t n){
+	//Aplicas downheap desde (n/2) - 1 para que sea O(n)
+	size_t pos = (n / 2) - 1;
+	downheap(arr, pos, n, cmp);
+	return arr;
+}
+
+void downheap(void** arr, size_t pos, size_t tam, cmp_func_t cmp){
+	if (pos < 0) return;
+	size_t max = pos;
+	size_t hijo_izq = 2 * pos + 1;
+	size_t hijo_der = 2 * pos + 2;
+
+	if (hijo_izq < tam && cmp(arr[hijo_izq], arr[max]) > 0) max = hijo_izq;
+
+	if (hijo_der < tam && cmp(arr[hijo_der], arr[max]) > 0) max = hijo_der;
+	//Veo si tengo que swapear
+	if (max != pos){
+		swap(arr, pos, max);
+		downheap(arr, max, tam, cmp); //no se que condicion de corte ponerle a este, llega a swapear y no sale mas
+	} //Bah, sale pero no se si es O(n)
+
+	downheap(arr, --pos, tam, cmp);
+}
+
+void swap(void** arr, size_t pos, size_t max){
+	void* aux = arr[pos];
+	arr[pos] = arr[max]; //La posicion en la que estaba ahora tiene el mayor elemento
+	arr[max] = aux; //donde estaba el amyor elemento ahora esta el ex-bigger
+}
