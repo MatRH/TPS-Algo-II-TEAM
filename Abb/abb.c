@@ -69,8 +69,24 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
 	if (!flia) return false;
 
 	bool guardado = master_search(arbol, clave, dato, 1, flia);
-	if (guardado && !flia->padre) arbol->cant_elem++; //Si guardado es true el proceso funciono, y si no tengo un padre
-	//sgnifica que el que buscaba no estaba en el arbol, entonces actualizo la cantidad de elementos
+	if (!guardado && !flia->padre){ //!padre significa que no estaba y !guardado que no lo guarde
+		nodo_abb_t* nuevo_nodo =  crear_nodo_abb(clave, dato);
+		if (!nuevo_nodo){
+			free(flia);
+			return false; //fallo la creacion del nodo
+		}
+
+		if (!arbol->cant_elem) arbol->raiz = nuevo_nodo; //No tenia nada es la raiz
+
+		else{ //El arbol no esta vacio
+			if (flia->es_izq) flia->abuelo->izq = nuevo_nodo; //porque flia->padre es null
+			else flia->abuelo->der = nuevo_nodo;
+		}
+		arbol->cant_elem++; //Si guardado es true el proceso funciono, y si no tengo un padre
+		free(flia);
+		return true;
+	}
+	//Si llego aca es porque guardado es true seguramente, entonces lo actualice, asi que libero memoria y chau
 	free(flia);
 	return guardado; //cambiale el nombre muy pedorro este
 }
@@ -209,14 +225,15 @@ bool master_search(const abb_t* abb, const char* clave, void* dato, int mode, fa
 				flia->padre->dato = dato; //lo reemplazo por el nuevo
 				return true;
 			}
-			//guardo el nuevo nodo
+			/*//guardo el nuevo nodo
 			nodo_abb_t* nuevo_nodo =  crear_nodo_abb(clave, dato);
 			if (!nuevo_nodo) return false; //fallo la creacion del nodo
 
 			//if (abb->func_cmp(flia->abuelo->clave, clave) > 0) flia->abuelo->izq = nuevo_nodo;
 			if (flia->es_izq) flia->abuelo->izq = nuevo_nodo;
 			else flia->abuelo->der = nuevo_nodo;
-			return true;
+			return true;*/ //Como es const abb esto no se puede hacer aca, rompe, devolvemos false a proposito
+			return false;
 		case 2:
 		case 3:
 		case 4:
@@ -230,17 +247,19 @@ Un entero mayor que 0 si la primera cadena es mayor que la segunda.
 0 si ambas claves son iguales.*/ //Para guiarme si esta bien
 
 bool buscar_clave(nodo_abb_t* raiz, const char* clave, family_t* flia, int mode, abb_comparar_clave_t cmp){
-	if (!raiz) return false; //no hay arbol
+	if (!raiz){
+		flia->padre = NULL; //No esta el que quiero borrar
+		return false; //no hay arbol
+	}
+	flia->padre = raiz;
 
 	if (cmp(clave, raiz->clave) > 0){
 		flia->abuelo = raiz;
-		flia->padre = raiz->der;
 		flia->es_izq = false;
 		return buscar_clave(raiz->der, clave, flia, mode, cmp); //Voy a la derecha del abb
 	}
 	else if (cmp(clave, raiz->clave) < 0){
 		flia->abuelo = raiz;
-		flia->padre = raiz->izq;
 		flia->es_izq = true;
 		return buscar_clave(raiz->izq, clave, flia, mode, cmp);//Voy a la izquiera
 	}
@@ -260,7 +279,7 @@ void asignar_padre(abb_t* abb, family_t* flia){
 	//El abuelo adopta a un nieto
 	//Caso 1: No tenes padre, entonces queres borrar la raiz significa, si la raiz no tiene hijos el arbol queda vacio
 	//Si tenes un hijo es izq O der, no tenes 2, te fijas cual es el que vive y esa es la nueva raiz
-	if (!flia->padre){  //Asignar padre se llama si tenes cero o un hijo, ergo nunca vas a tener que buscar reemplazante aca
+	if (!flia->abuelo){  //Asignar padre se llama si tenes cero o un hijo, ergo nunca vas a tener que buscar reemplazante aca
 		if (flia->cant_hijos){
 			abb->raiz = (flia->es_izq) ? flia->hijo_izq : flia->hijo_der;
 			return;
@@ -286,11 +305,7 @@ nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia){ //Si uso esta
 }
 
 void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz){ //CHEQUEAR
-	if (!raiz){
-		printf("entre al if\n");
-		return;
-	}
-	printf("Hare lo de la raiz\n");
+	if (!raiz) return;
 
 	destruir_wrapper(arbol, raiz->der);
 	destruir_wrapper(arbol, raiz->izq);

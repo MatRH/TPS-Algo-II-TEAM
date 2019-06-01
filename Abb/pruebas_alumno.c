@@ -14,10 +14,7 @@ Corrector: Secchi, Ana
 #include <unistd.h> //para el ssize_t
 
 int comparar_clave(const char* clave1, const char* clave2){
-	size_t len1 = strlen(clave1), len2 = strlen(clave2);
-	if (len1 == len2) return 0;
-	if (len1 > len2) return -1;
-	else return 1;
+    return strcmp(clave1, clave2); //Porque si tenian longitudes iguales estaba mal que de lo que de
 }
 /* ******************************************************************
  *                        PRUEBAS UNITARIAS
@@ -34,7 +31,7 @@ static void prueba_crear_abb_vacio()
     print_test("Prueba abb borrar clave A, es NULL, no existe", !abb_borrar(abb, "A"));
 
     abb_destruir(abb);
-    printf("destrui el arbol correctamente");
+    printf("destrui el arbol correctamente\n");
 }
 
 static void prueba_abb_insertar()
