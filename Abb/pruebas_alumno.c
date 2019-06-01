@@ -12,6 +12,7 @@ Corrector: Secchi, Ana
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h> //para el ssize_t
+#include <wchar.h> //para el ssize_t
 
 int comparar_clave(const char* clave1, const char* clave2){
     return strcmp(clave1, clave2); //Porque si tenian longitudes iguales estaba mal que de lo que de
@@ -22,6 +23,7 @@ int comparar_clave(const char* clave1, const char* clave2){
 
 static void prueba_crear_abb_vacio()
 {
+    printf("INICIO PRUEBAS ABB VACÍO\n");
     abb_t* abb = abb_crear(comparar_clave, NULL);
 
     print_test("Prueba abb crear abb vacio", abb);
@@ -31,11 +33,11 @@ static void prueba_crear_abb_vacio()
     print_test("Prueba abb borrar clave A, es NULL, no existe", !abb_borrar(abb, "A"));
 
     abb_destruir(abb);
-    printf("destrui el arbol correctamente\n");
 }
 
 static void prueba_abb_insertar()
 {
+    printf("INICIO PRUEBAS ABB INSERTAR\n");
     abb_t* abb1 = abb_crear(comparar_clave, NULL);
 
     char *clave1 = "perro", *valor1 = "guau";
@@ -69,6 +71,7 @@ static void prueba_abb_insertar()
 
 static void prueba_abb_reemplazar()
 {
+    printf("INICIO PRUEBAS ABB REEEMPLAZAR\n");
     abb_t* abb = abb_crear(comparar_clave, NULL);
 
     char *clave1 = "perro", *valor1a = "guau", *valor1b = "warf";
@@ -96,6 +99,7 @@ static void prueba_abb_reemplazar()
 
 static void prueba_abb_reemplazar_con_destruir()
 {
+    printf("INICIO PRUEBAS ABB REEMPLAZAR CON DESTRUIR\n");
     abb_t* abb = abb_crear(comparar_clave, free);
 
     char *clave1 = "perro", *valor1a, *valor1b;
@@ -130,6 +134,7 @@ static void prueba_abb_reemplazar_con_destruir()
 
 static void prueba_abb_borrar()
 {
+    printf("INICIO PRUEBAS ABB BORRAR\n");
     abb_t* abb = abb_crear(comparar_clave, NULL);
 
     char *clave1 = "perro", *valor1 = "guau";
@@ -168,6 +173,7 @@ static void prueba_abb_borrar()
 
 static void prueba_abb_clave_vacia()
 {
+    printf("INICIO PRUEBAS ABB CLAVE VACÍA\n");
     abb_t* abb = abb_crear(comparar_clave, NULL);
 
     char *clave = "", *valor = "";
@@ -184,6 +190,7 @@ static void prueba_abb_clave_vacia()
 
 static void prueba_abb_valor_null()
 {
+    printf("INICIO PRUEBAS ABB CON VALOR NULL\n");
     abb_t* abb = abb_crear(comparar_clave, NULL);
 
     char *clave = "", *valor = NULL;
@@ -201,6 +208,7 @@ static void prueba_abb_valor_null()
 
 static void prueba_abb_volumen(size_t largo, bool debug)
 {
+    printf("INICIO PRUEBAS ABB VOLÚMEN\n");
     abb_t* abb = abb_crear(comparar_clave, NULL);
 
     const size_t largo_clave = 10;
@@ -234,8 +242,14 @@ static void prueba_abb_volumen(size_t largo, bool debug)
 
     /* Verifica que borre y devuelva los valores correctos */
     for (size_t i = 0; i < largo; i++) {
-        ok = abb_borrar(abb, claves[i]) == valores[i];
-        if (!ok) break;
+        unsigned* borrado = abb_borrar(abb, claves[i]);
+        ok = *borrado == *valores[i];
+        if (!ok){
+          printf("Clave guardada : %s\n", claves[i]);
+          printf("Valor esperado : %u\n", *valores[i]);
+          printf("Valor obtenido : %u\n", *borrado);
+          break;
+        };
     }
 
     if (debug) print_test("Prueba abb borrar muchos elementos", ok);
