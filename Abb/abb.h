@@ -11,9 +11,14 @@ Corrector: Secchi, Ana
 #include <stddef.h>
 
 typedef struct abb abb_t;
+typedef struct abb_iter abb_iter_t;
 
 typedef int (*abb_comparar_clave_t) (const char *, const char *);
 typedef void (*abb_destruir_dato_t) (void *);
+
+/* *****************************************************************
+ *           DECLARACION PRIMITIVAS DEL ABB
+  * *****************************************************************/
 
 /*Crea el abb. 
 *Devuelve NULL en caso de error
@@ -57,6 +62,45 @@ size_t abb_cantidad(abb_t *arbol);
  * Post: La estructura abb fue destruida
  */
 void abb_destruir(abb_t *arbol);
+
+/* *****************************************************************
+ *      DECLARACION PRIMITIVAS DEL ITERADOR EXTERNO DEL ABB
+  * *****************************************************************/
+
+/*Crea un iterador para el ABB.
+*Post: devuelve un iterador.
+*/
+abb_iter_t *abb_iter_in_crear(const abb_t *arbol);
+
+/*Avanza una posicion el iterador, devuelve false en caso de que el iterador
+*se encuentre al final del abb.
+*Pre: el abb y el iterador fueron creados.
+*/
+bool abb_iter_in_avanzar(abb_iter_t *iter);
+
+/*Devuelve la clave del nodo al cual esta apuntado el iterador.
+*Pre: el abb y el iterador fueron creados.
+*/
+const char *abb_iter_in_ver_actual(const abb_iter_t *iter);
+
+/*Devuelve true si el iterador se encuentra al final del abb,
+*false en caso contrario.
+*Pre: el iterador fue creado.
+*/
+bool abb_iter_in_al_final(const abb_iter_t *iter);
+
+/*Destruye el iterador
+*Pre: el iterador fue creado
+*/
+void abb_iter_in_destruir(abb_iter_t* iter);
+
+/*Iterador interno, que funciona usando la función de callback 
+*“visitar” que recibe la clave, el valor y un puntero extra,
+*y devuelve true si se debe seguir iterando, false en caso contrario
+*/
+
+//Iterador interno
+void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra);
 
 void pruebas_abb_alumno(void);
 

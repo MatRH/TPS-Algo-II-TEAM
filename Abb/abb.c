@@ -26,19 +26,31 @@ struct abb{
 	size_t cant_elem;
 }; //creo que no hace falta hacer typedef porque en el .h ya le hacen
 
+struct abb_iter{
+	//COMPLETAR
+	const abb_t* arbol;
+	nodo_abb_t* actual;
+};
+
+typedef struct family{
+	nodo_abb_t* abuelo;
+	nodo_abb_t* padre; //Padre siempre va a ser el que quiero borrar, ver si pertenece etc
+	nodo_abb_t* hijo_izq;
+	nodo_abb_t* hijo_der;
+	size_t cant_hijos;
+	bool es_izq; //Para facilitar el tema de borrar, asi se si el abuelo tiene el hijo a la izq o der
+} family_t;
+
 //DECLARACIONES FUNCIONES AUXILIARES
 nodo_abb_t* crear_nodo_abb(const char* clave, void* dato);
-bool master_search(const abb_t* abb, const char* clave, void* dato, nodo_abb_t* nodo_aux, int mode);
-bool buscar_clave(nodo_abb_t* raiz, const char* clave, nodo_abb_t* nodo_aux, abb_comparar_clave_t cmp);
-size_t nodo_cant_hijos(nodo_abb_t* nodo);
+bool master_search(const abb_t* abb, const char* clave, void* dato, int mode, family_t* flia);
+bool buscar_clave(nodo_abb_t* raiz, const char* clave, family_t* flia, int mode, abb_comparar_clave_t cmp);
+void nodo_cant_hijos(nodo_abb_t* nodo, family_t* flia);
 void* nodo_destruir(nodo_abb_t* nodo);
-nodo_abb_t* nodo_buscar_padre(abb_t* abb, const char* clave, bool *es_izq);
-nodo_abb_t* buscar_padre_wrapper(nodo_abb_t* raiz, const char* clave, abb_comparar_clave_t cmp, bool* es_izq);
-nodo_abb_t obtener_nieto(abb_t* abb, const char* clave);
-nodo_abb_t* obtener_nieto_wrapper(nodo_abb_t* raiz, abb_comparar_clave_t cmp, const char* clave);
-nodo_abb_t* buscar_reemplazante(abb, clave);
-void asignar_padre(abb_t* abb, nodo_abb_t* padre, nodo_abb_t* nuevo_hijo, bool es_izq);
+nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia);
+void asignar_padre(abb_t* abb, family_t* flia);
 void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz);
+family_t* crear_familia(void);
 /* *****************************************************************
  *                  IMPLEMENTACION PRIMITIVAS DEL ABB
   * *****************************************************************/
@@ -53,74 +65,107 @@ abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato){
 }
 
 bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
-	//Si no me equivoco con el seguimiento que hice, este master search funciona bien si el arbol esta vacio
-	//o si ya tiene cosas
-	return master_search(arbol, clave, dato, NULL, 1); //En la funcion se actualiza la cant de elem si es que no estaba
+	family_t* flia = crear_familia();
+	if (!flia) return false;
+
+	bool guardado = master_search(arbol, clave, dato, 1, flia);
+	if (guardado && !flia->padre) arbol->cant_elem++; //Si guardado es true el proceso funciono, y si no tengo un padre
+	//sgnifica que el que buscaba no estaba en el arbol, entonces actualizo la cantidad de elementos
+	free(flia);
+	return guardado; //cambiale el nombre muy pedorro este
 }
 
 bool abb_pertenece(const abb_t *arbol, const char *clave){
-	return master_search(arbol, clave, NULL, NULL, 3);
+	family_t* flia = crear_familia();
+	if (!flia) return false;
+	bool pertenece = master_search(arbol, clave, NULL, 3, flia);
+	free(flia);  //aca pasarle flia es al pedo, pero habria que modificar mucho si no le pasamos
+	return pertenece;
 }
 
 void *abb_obtener(const abb_t *arbol, const char *clave){
-	nodo_abb_t* nodo = NULL;
-	return (master_search(arbol, clave, nodo,NULL, 2)) ? nodo->dato : NULL;
+	void* dato = NULL; //de entrada suponemos que no esta
+	family_t* flia = crear_familia();
+	if (!flia) return NULL;
+
+	bool obtener = master_search(arbol, clave, NULL, 2, flia);
+
+	if (obtener) dato = flia->padre->dato; //Obtener da true, asi que padre es distinto de NULL
+	free(flia);
+	return dato; 
 }
 
-/* Borra un elemento del abb y devuelve el dato asociado. Devuelve
- * NULL si el dato no estaba.
- * Pre: La estructura abb fue inicializada
- * Post: El elemento fue borrado de la estructura y se lo devolvió,
- * en el caso de que estuviera guardado.
- */
 void *abb_borrar(abb_t *arbol, const char *clave){ //clave del que voy a borrar
 	if(!arbol) return NULL;
-	nodo_abb_t* nodo;
-	void* dato, dato_nodo;
-	bool pertenece = master_search(arbol, clave, dato, nodo, 4); //El nodo que quiero borrar queda guardado
+	void* dato_nodo = NULL;
+	family_t* flia = crear_familia();
+	if (!flia) return NULL;
+
+	bool pertenece = master_search(arbol, clave, NULL, 4, flia); //El nodo que quiero borrar queda guardado
 
 	if (pertenece){
-		bool izq = true; //Variable para saber cuando busque al padre, si el hijo que voy a borrar es izq o derecho
-		size_t cant_hijos = nodo_cant_hijos(nodo);
-		nodo_abb_t* padre = nodo_buscar_padre(arbol, clave, &izq); //esta funcion tiene que tener cuidado si es la raiz
-		//Acordate de restar uno a la cantidad en todos los casos
-		if (!cant_hijos) asignar_padre(arbol, padre, NULL, izq);
+		if (!flia->cant_hijos) asignar_padre(arbol, flia);
 
-		else if (cant_hijos == 1){ //Podriamos obtener el nieto, despues llamamos a la funcion de asignar y listo
-			nodo_abb_t* nieto = obtener_nieto(arbol, clave); //Supongamos que anda
-			asignar_padre(arbol, padre, nieto, izq);
-		}
+		else if (flia->cant_hijos == 1) asignar_padre(arbol, flia);
+
 		else{				//0.0
-			nodo_abb_t* reemplazante = buscar_reemplazante(arbol, clave);//implementar
+			family_t* flia_reemplazante = crear_familia();
+			if (!flia_reemplazante) return NULL; //Se podria hacer todo con una no se que conviene
+
+			nodo_abb_t* reemplazante = buscar_reemplazante(flia->padre->der, flia_reemplazante);
+			//Si todo funca, ya tenes el reemplazante
+			//Como maximo el sucesor puede tener un hijo a su derecha
+			if (flia_reemplazante->abuelo) flia_reemplazante->abuelo->izq = flia_reemplazante->hijo_der;
+
 			/*buscar reemplazante tiene que borrar el nodo reemplazante del abb, y devolverlo*/
-			free(nodo->clave); //Libero la clave del nodo viejo
-			nodo->clave = strdup(reemplazante->clave); //reemplazo la clave, pero hago una copia, porque nodo_destruir la libeta
-			dato_nodo = nodo->dato; //me guardo el dato del nodo que voy a borrar
-			nodo->dato = nodo_destruir(reemplazante);//reemplazo el dato y destruyo el nodo
-			arbol->cant_elem--;
-			return dato_nodo;
+			free(flia->padre->clave); //Libero la clave del nodo viejo
+			flia->padre->clave = strdup(reemplazante->clave); //reemplazo la clave, pero hago una copia, porque nodo_destruir la libeta
+
+			dato_nodo = flia->padre->dato; //me guardo el dato del nodo que voy a borrar
+			flia->padre->dato = reemplazante->dato; //Actualizo el dato del que "borre"
+			free(reemplazante); //Ya termine de copiar las cosas del sucesor, libero la memoria pedida para este
+			free(flia_reemplazante);
 		}
 		arbol->cant_elem--;
-		dato_nodo = nodo_destruir(nodo);
+		if (flia->cant_hijos != 2) dato_nodo = nodo_destruir(flia->padre); //Porque si es 2 lo obtuve arriba
+		free(flia);
 		return dato_nodo;
 	}
 	return NULL;
 }
 
-/* Destruye la estructura liberando la memoria pedida y llamando a la función
- * destruir para cada par (clave, dato).
- * Pre: La estructura abb fue inicializada
- * Post: La estructura abb fue destruida
- */
 void abb_destruir(abb_t *arbol){
-	//implementar
 	if(!arbol) return;
-	destruir_wrapper(arbol->raiz);
+	destruir_wrapper(arbol, arbol->raiz);
 }
-
 
 size_t abb_cantidad(abb_t *arbol){
 	return arbol->cant_elem;
+}
+/* *****************************************************************
+ *     IMPLEMENTACION PRIMITIVAS DEL ITERADOR EXTERNO DEL ABB
+  * *****************************************************************/
+abb_iter_t *abb_iter_in_crear(const abb_t *arbol){
+	abb_iter_t* iter_abb = malloc(sizeof(abb_iter_t));
+	if (!iter_abb) return NULL;
+
+	iter_abb->arbol = arbol;
+	iter_abb->actual = arbol->raiz;
+	return iter_abb;
+}
+
+const char *abb_iter_in_ver_actual(const abb_iter_t *iter){
+	return (iter->actual) ? strdup(iter->actual->clave) : NULL;
+	//Creo que tiene que devolver una copia no la original
+	//que despues el usuario se encargue de borrarla
+}
+
+bool abb_iter_in_al_final(const abb_iter_t *iter){
+	return !iter->actual; //No se bien como funciona porque todas las hojas tienen NULL
+}
+
+void abb_iter_in_destruir(abb_iter_t* iter){
+	free(iter);
 }
 
 /* *****************************************************************
@@ -137,63 +182,68 @@ nodo_abb_t* crear_nodo_abb(const char* clave, void* dato){
 		return nodo_abb;
 }
 
-size_t nodo_cant_hijos(nodo_abb_t* nodo){
-	size_t cant = 0;
-	if (nodo->izq)  cant++;
-	if (nodo->der) cant++;
-	return cant;
+void nodo_cant_hijos(nodo_abb_t* nodo, family_t* flia){
+	flia->hijo_der = nodo->der;
+	flia->hijo_izq = nodo->izq;
+	if (flia->hijo_izq)  flia->cant_hijos++;
+	if (flia->hijo_der) flia->cant_hijos++;
+	return;
 }
 
-bool master_search(const abb_t* abb, const char* clave, void* dato, void* nodo_aux, int mode){ 
-	//guardar: 1; obtener: 2; pertenece: 3; borrar: 4
-	if (!abb || (!abb->cant_elem && mode == 3)) return false;
-	nodo_abb_t* nodo = NULL;
+bool master_search(const abb_t* abb, const char* clave, void* dato, int mode, family_t* flia){ 
+	/*Modos:
+	*Guardar = 1, Obtener = 2, Pertenece = 3, Borrar = 4
+	*/
+	if (!abb || (!abb->cant_elem && mode > 1)) return false; //si no tengo elementos para los casos 2,3,4 al pedo buscar
 
-	bool pertenece = buscar_clave(abb->raiz, clave, nodo, abb->func_cmp);
+	bool pertenece = buscar_clave(abb->raiz, clave, flia, mode, abb->func_cmp);
 
-	switch(mode){
-		case 1://guardar
+	switch(mode){ //todo queda guardado en la flia ahora supuestamente
+		case 1:
 			if (pertenece){ //reemplazo
 				if (abb->func_destruc){ //hay func de destruccion
-					abb->func_destruc(nodo->dato); //destruyo el dato viejo
+					abb->func_destruc(flia->padre->dato); //destruyo el dato viejo
 				}
-				nodo->dato = dato; //lo piso
+				flia->padre->dato = dato; //lo reemplazo por el nuevo
 				return true;
 			}
 			//guardo el nuevo nodo
 			nodo_abb_t* nuevo_nodo =  crear_nodo_abb(clave, dato);
 			if (!nuevo_nodo) return false; //fallo la creacion del nodo
 
-			if (abb->func_cmp(nodo->clave, clave) > 0) nodo->izq = nuevo_nodo;
-			else nodo->der = nuevo_nodo;
-			//abb->cant_elem ++; //explota, hay que hacerlo afuera parece que
+			//if (abb->func_cmp(flia->abuelo->clave, clave) > 0) flia->abuelo->izq = nuevo_nodo;
+			if (flia->es_izq) flia->abuelo->izq = nuevo_nodo;
+			else flia->abuelo->der = nuevo_nodo;
 			return true;
-
-		case 2://obtener
-			if (pertenece){
-				dato = nodo->dato;
-				return true;
-			}
-			dato = NULL;
-			return false;
-
-		case 3: return pertenece;
-
+		case 2:
+		case 3:
 		case 4:
-			nodo_aux = nodo;
-			return pertenece;
+			return pertenece; //Los 3 casos devuelven lo mismo porque todo queda en flia
 	}
 	return false;
 }
-/*Si encuentra la clave devuelve el true y el nodo en aux, si no la encuentra
- devuelve false y el padre supuesto*/
-bool buscar_clave(nodo_abb_t* raiz, const char* clave, nodo_abb_t* nodo_aux, abb_comparar_clave_t cmp){
-	if (!raiz) return false;
-	nodo_aux = raiz;
-	if (cmp(clave, raiz->clave) > 0) return buscar_clave(raiz->der, clave, nodo_aux, cmp); //Voy a la derecha del abb
 
-	else if (cmp(clave, raiz->clave) < 0) return buscar_clave(raiz->izq, clave, nodo_aux, cmp);//Voy a la izquiera
+/*Un entero menor que 0 si la primera cadena es menor que la segunda.
+Un entero mayor que 0 si la primera cadena es mayor que la segunda.
+0 si ambas claves son iguales.*/ //Para guiarme si esta bien
 
+bool buscar_clave(nodo_abb_t* raiz, const char* clave, family_t* flia, int mode, abb_comparar_clave_t cmp){
+	if (!raiz) return false; //no hay arbol
+
+	if (cmp(clave, raiz->clave) > 0){
+		flia->abuelo = raiz;
+		flia->padre = raiz->der;
+		flia->es_izq = false;
+		return buscar_clave(raiz->der, clave, flia, mode, cmp); //Voy a la derecha del abb
+	}
+	else if (cmp(clave, raiz->clave) < 0){
+		flia->abuelo = raiz;
+		flia->padre = raiz->izq;
+		flia->es_izq = true;
+		return buscar_clave(raiz->izq, clave, flia, mode, cmp);//Voy a la izquiera
+	}
+	//Si llego hasta aca es que la funcion de comparacion dio cero, veo el tema de hijos
+	if (mode == 4) nodo_cant_hijos(raiz, flia); //Solo si estas en modo borrar te interesa la cantidad de hijos
 	return true; //Seria el caso de que cmp de cero
 }
 
@@ -204,87 +254,36 @@ void* nodo_destruir(nodo_abb_t* nodo){
 	return dato;
 }
 
-nodo_abb_t* nodo_buscar_padre(abb_t* abb, const char* clave, bool *es_izq){
-	/*Cuando busque el padre, ya voy a saber si el hijo que voy a borrar esta a la izq o der
-	*Para el caso de sin hijos y con un hijo lo facilita bastante (creo), para el caso de dos hijos
-	*tambien sirve, porque su hijo va a morir (drastico) y ser reemplazado, y como sabes si era izq o der
-	*ya sabes a donde hacer que apunte.
-	Supongo que pasarle puntero a bool va a andar, chequear despues*/
-	if (abb->cant_elem == 1) return NULL; //el que quiero borrar es la raiz, no tiene padre
-
-	return buscar_padre_wrapper(abb->raiz, clave, abb->func_cmp, es_izq);
-}
-
-nodo_abb_t* buscar_padre_wrapper(nodo_abb_t* raiz, const char* clave, abb_comparar_clave_t cmp, bool* es_izq){
-	//No pongo el caso que no este porque ya buscamos antes si esta o no lo que quiero borrar
-	nodo_abb_t* hijo_izq = raiz->izq;
-	nodo_abb_t* hijo_der = raiz->der;
-
-	if (hijo_izq && !cmp(clave, hijo_izq->clave)){
-		*es_izq = true;
-		return raiz; //esa raiz va a ser el padre
-	}
-	else if (hijo_der && !cmp(clave, hijo_der->clave)){
-		*es_izq = false;
-		return raiz;
-	}
-	else{ //tengo que seguir buscando, veo si voy pa' la der o izq
-		if (cmp(clave, raiz->clave) > 0) return buscar_padre_wrapper(hijo_der, clave, cmp, es_izq);
-		else return buscar_padre_wrapper(hijo_izq, clave, cmp, es_izq);
-	} //Creo que va a andar
-}
-
-nodo_abb_t* obtener_nieto(abb_t* abb, const char* clave){
-	/*Queres borrar la raiz que tiene un hijo, saber si es izq o derecho o si es la raiz ya sabes
-	*Ya sabes que si o si tenes un hijo*/
-	return obtener_nieto_wrapper(abb->raiz, abb->func_cmp, clave);
-}
-
-nodo_abb_t* obtener_nieto_wrapper(nodo_abb_t* raiz, abb_comparar_clave_t cmp, const char* clave){
-	nodo_abb_t* hijo_izq = raiz->izq; //quizas se podria juntar con el otro wrapper, pero el cmp es !=
-	nodo_abb_t* hijo_der = raiz->der;
-
-	if (hijo_izq && !cmp(clave, raiz->clave)){
-		return hijo_izq;
-	}
-	else if (hijo_der && !cmp(clave, raiz->clave)){
-		return hijo_der;
-	}
-	else{ //tengo que seguir buscando, veo si voy pa' la der o izq
-		if (cmp(clave, raiz->clave) > 0) return obtener_nieto_wrapper(hijo_der, cmp, clave);
-		else return obtener_nieto_wrapper(hijo_izq, cmp, clave);
-	} //Creo que va a andar
-
-}
-
-void asignar_padre(abb_t* abb, nodo_abb_t* padre, nodo_abb_t* nuevo_hijo, bool es_izq){
-	//Caso 1: El padre es Null, o sea, lo que voy a borrar es la raiz, entonces, la nueva raiz es ese hijo (que puede
-	//ser NULL en el caso de que lo que voy a borrar es la raiz y justo no tiene hijos)
-	if (!padre){
-		abb->raiz = nuevo_hijo; //Puede ser NULL como puede ser un nodo
+void asignar_padre(abb_t* abb, family_t* flia){
+	//El abuelo adopta a un nieto
+	//Caso 1: No tenes padre, entonces queres borrar la raiz significa, si la raiz no tiene hijos el arbol queda vacio
+	//Si tenes un hijo es izq O der, no tenes 2, te fijas cual es el que vive y esa es la nueva raiz
+	if (!flia->padre){  //Asignar padre se llama si tenes cero o un hijo, ergo nunca vas a tener que buscar reemplazante aca
+		if (flia->cant_hijos){
+			abb->raiz = (flia->es_izq) ? flia->hijo_izq : flia->hijo_der;
+			return;
+		}
+		abb->raiz = NULL;
 		return;
 	}
 	//Caso 2: tengo padre, pero yo no tengo nuevo_hijo (caso cant_hijos == 0)
 	//Caso 3: tengo padre, y tengo (caso cant_hijos == 1)
-	else if (padre){
-		if (!nuevo_hijo){
-			if (izq) padre->izq = NULL; //El que voy a borrar esta a la izq de su padre, y a su vez no tiene hijos
-			else padre->der = NULL;
-			return;
-		}
-		//Tengo hijo
-		if (izq) padre->izq = nuevo_hijo; //El que voy a borrar esta a la izq de su padre, y a su vez no tiene hijos
-		else padre->der = nuevo_hijo;
-		return;
-	}
+	if (flia->es_izq) flia->abuelo->izq = flia->hijo_izq; //El que voy a borrar esta a la izq o der de su padre
+	else flia->abuelo->der = flia->hijo_der; //Nuevo_hijo puede ser NULL asi que cumpliria los casos
 	return;
 }
 
-nodo_abb_t* buscar_reemplazante(abb_t* abb, const char* clave){ //Si uso esta es porque tengo dos hijos, busco sucesor
-
+nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia){ //Si uso esta es porque tengo dos hijos, busco sucesor
+	/*Si o si tenes dos hijos si llamas a esta funzion, asi que raiz no va a ser NULL*/
+	if (!raiz->izq){ //Encontre el sucesor si no puedo ir mas a la izq
+		flia->hijo_der = raiz->der; //El sucesor como maximo tiene un hijo y es derecho si o si
+		return raiz; //Donde estoy parado es el sucesor del que quiero borrar
+	}
+	flia->abuelo = raiz;
+	return buscar_reemplazante(raiz->izq, flia);
 }
 
-void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz){
+void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz){ //CHEQUEAR
 	if (!raiz) return;
 
 	destruir_wrapper(arbol, raiz->der);
@@ -294,4 +293,16 @@ void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz){
 
 	nodo_destruir(raiz);
 	return;
+}
+
+family_t* crear_familia(void){
+	family_t* familia = malloc(sizeof(family_t));
+	if (!familia) return NULL;
+	familia->abuelo = NULL;
+	familia->padre = NULL;
+	familia->hijo_izq = NULL;
+	familia->hijo_der = NULL;
+	familia->cant_hijos = 0;
+	familia->es_izq = true;
+	return familia;
 }
