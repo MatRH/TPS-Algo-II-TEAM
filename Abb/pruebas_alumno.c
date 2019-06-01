@@ -15,7 +15,7 @@ Corrector: Secchi, Ana
 #include <wchar.h> //para el ssize_t
 
 int comparar_clave(const char* clave1, const char* clave2){
-    return strcmp(clave1, clave2); //Porque si tenian longitudes iguales estaba mal que de lo que de
+    return strcmp(clave1, clave2);
 }
 /* ******************************************************************
  *                        PRUEBAS UNITARIAS
@@ -218,13 +218,38 @@ static void prueba_abb_volumen(size_t largo, bool debug)
 
     /* Inserta 'largo' parejas en el abb */
     bool ok = true;
+    unsigned claves_random[10] = {5, 2, 8, 1, 3, 4, 6, 9, 7, 10};
     for (unsigned i = 0; i < largo; i++) {
         valores[i] = malloc(sizeof(int));
-        sprintf(claves[i], "%08d", i);
+        sprintf(claves[i], "%08d", claves_random[i]);
         *valores[i] = i;
-        ok = abb_guardar(abb, claves[i], valores[i]);
+        ok = abb_guardar(abb, claves[i], valores[i]); //esto deberia estar afuera
         if (!ok) break;
     }
+    for (int i = 0; i < largo; i++){
+        printf("%s\n", claves[i]);
+    }
+    //Desordeno el arreglo
+    /*size_t cant_swaps = 0;
+    while (cant_swaps < 5){
+        size_t rnd_1 = rand() % largo;
+        size_t rnd_2 = rand() % largo;
+
+        if (rnd_1 == rnd_2) continue; // me fijo que sean distintos
+        unsigned* aux_valor = valores[rnd_1];
+        valores[rnd_1] = valores[rnd_2];
+        valores[rnd_2] = aux_valor;
+
+        aux_clave = claves[rnd_1];
+        claves[rnd_1] = claves[rnd_2];
+        claves[rnd_2] = aux_clave;
+        cant_swaps++;
+    }
+
+    for (unsigned i = 0; i < largo; i++){
+        ok = abb_guardar(abb, claves[i], valores[i]); //esto deberia estar afuera
+        if (!ok) break;
+    }*/
 
     if (debug) print_test("Prueba abb almacenar muchos elementos", ok);
     if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
@@ -242,7 +267,10 @@ static void prueba_abb_volumen(size_t largo, bool debug)
 
     /* Verifica que borre y devuelva los valores correctos */
     for (size_t i = 0; i < largo; i++) {
+        printf("Voy a borrar %s\n", claves[i]);
         unsigned* borrado = abb_borrar(abb, claves[i]);
+        printf("Borre: %s\n", claves[i]);
+        printf("\n");
         ok = *borrado == *valores[i];
         if (!ok){
           printf("Clave guardada : %s\n", claves[i]);
@@ -296,7 +324,7 @@ void pruebas_abb_alumno()
     prueba_abb_borrar();
     prueba_abb_clave_vacia();
     prueba_abb_valor_null();
-    prueba_abb_volumen(5000, true);
+    prueba_abb_volumen(10, true);
 }
 
 void pruebas_volumen_alumno(size_t largo)
