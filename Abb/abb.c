@@ -34,7 +34,7 @@ struct abb_iter{
 
 typedef struct family{
 	nodo_abb_t* abuelo;
-	nodo_abb_t* padre; //Padre siempre va a ser el que quiero borrar, ver si pertenece etc
+	nodo_abb_t* padre; //Padre es para el que llamé
 	nodo_abb_t* hijo_izq;
 	nodo_abb_t* hijo_der;
 	size_t cant_hijos;
@@ -108,7 +108,7 @@ void *abb_obtener(const abb_t *arbol, const char *clave){
 
 	if (obtener) dato = flia->padre->dato; //Obtener da true, asi que padre es distinto de NULL
 	free(flia);
-	return dato; 
+	return dato;
 }
 
 void *abb_borrar(abb_t *arbol, const char *clave){ //clave del que voy a borrar
@@ -208,7 +208,7 @@ void nodo_cant_hijos(nodo_abb_t* nodo, family_t* flia){
 	return;
 }
 
-bool master_search(const abb_t* abb, const char* clave, void* dato, int mode, family_t* flia){ 
+bool master_search(const abb_t* abb, const char* clave, void* dato, int mode, family_t* flia){
 	/*Modos:
 	*Guardar = 1, Obtener = 2, Pertenece = 3, Borrar = 4
 	*/
@@ -312,7 +312,7 @@ void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz){ //CHEQUEAR
 
 	if (arbol->func_destruc) arbol->func_destruc(nodo_destruir(raiz));
 
-	nodo_destruir(raiz);
+	else nodo_destruir(raiz);
 	return;
 }
 
