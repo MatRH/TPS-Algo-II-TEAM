@@ -131,12 +131,14 @@ void *abb_borrar(abb_t *arbol, const char *clave){ //clave del que voy a borrar
 		free(flia);
 		return dato_nodo;
 	}
+	free(flia);
 	return NULL;
 }
 
 void abb_destruir(abb_t *arbol){
 	if(!arbol) return;
 	destruir_wrapper(arbol, arbol->raiz);
+	free(arbol);
 }
 
 size_t abb_cantidad(abb_t *arbol){
@@ -284,7 +286,11 @@ nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia){ //Si uso esta
 }
 
 void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz){ //CHEQUEAR
-	if (!raiz) return;
+	if (!raiz){
+		printf("entre al if\n");
+		return;
+	}
+	printf("Hare lo de la raiz\n");
 
 	destruir_wrapper(arbol, raiz->der);
 	destruir_wrapper(arbol, raiz->izq);
