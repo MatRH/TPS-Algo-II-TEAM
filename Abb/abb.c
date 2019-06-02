@@ -48,7 +48,8 @@ bool buscar_clave(nodo_abb_t* raiz, const char* clave, family_t* flia, int mode,
 void nodo_cant_hijos(nodo_abb_t* nodo, family_t* flia);
 void* nodo_destruir(nodo_abb_t* nodo);
 nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia);
-void asignar_padre(abb_t* abb, family_t* flia);
+//void reorganizar_flia(abb_t* abb, family_t* flia);
+void reorganizar_flia(abb_t* abb, family_t* flia, family_t* flia_reemplazante);
 void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz);
 family_t* crear_familia(void);
 /* *****************************************************************
@@ -117,60 +118,31 @@ void *abb_borrar(abb_t *arbol, const char *clave){ //clave del que voy a borrar
 	family_t* flia = crear_familia();
 	if (!flia) return NULL;
 
-	bool pertenece = master_search(arbol, clave, NULL, 4, flia); //El nodo que quiero borrar queda guardado
+	bool pertenece = master_search(arbol, clave, NULL, 4, flia); //El nodo que quiero borrar queda guardado en padre SIEMPRE
 
 	if (pertenece){
-		if (flia->hijo_izq) printf("El hijo izq del padre es: %s\n", flia->hijo_izq->clave);
-		else printf("No tiene hijo izq\n");
-		if (flia->hijo_der) printf("El hijo der del padre es: %s\n", flia->hijo_der->clave);
-		else printf("No tiene hijo der\n");
+		if (!flia->cant_hijos) reorganizar_flia(arbol, flia, NULL);
 
-		if (!flia->cant_hijos) asignar_padre(arbol, flia);
-
-		else if (flia->cant_hijos == 1){
-			printf("TENGO UN HIJO DEL QUE QUIERO BORRAR\n");
-			/*if (flia->abuelo) printf("Mi abuelo es %s\n", flia->abuelo->clave);
-			else printf("No tengo abuelo\n");
-			if (flia->hijo_izq) printf("Mi hijo izquiero es %s\n", flia->hijo_izq->clave);
-			else printf("No tengo hijo izq\n");
-			if (flia->hijo_der) printf("Mi hijo der es %s\n", flia->hijo_der->clave);
-			else printf("No tengo hijo der\n");*/
-
-			asignar_padre(arbol, flia);
-			if (flia->abuelo){
-				if (flia->abuelo->izq) printf("El hijo izq adoptado es %s\n", flia->abuelo->izq->clave);
-			}
-			else printf("NO TENGO ABUELO\n");
-		}
-		else{				//0.0
+		else if (flia->cant_hijos == 1) reorganizar_flia(arbol, flia, NULL);
+			
+		else{				//La cantidad de hijos es 2 si llego aca
 			family_t* flia_reemplazante = crear_familia();
-			if (!flia_reemplazante) return NULL; //Se podria hacer todo con una no se que conviene
-
+			if (!flia_reemplazante){
+				free(flia);
+				return NULL;
+			}
 			nodo_abb_t* reemplazante = buscar_reemplazante(flia->padre->der, flia_reemplazante);
-			printf("El reemplazante es %s\n", reemplazante->clave);
-			if (flia_reemplazante->hijo_der) printf("El hijo der del reemplazante es %s\n", flia_reemplazante->hijo_der->clave);
-			//Si todo funca, ya tenes el reemplazante
 			//Como maximo el sucesor puede tener un hijo a su derecha
-			if (!flia_reemplazante->abuelo) flia->padre->der = flia_reemplazante->hijo_der;
-			else flia_reemplazante->abuelo->izq = flia_reemplazante->hijo_der;
-
-			/*buscar reemplazante tiene que borrar el nodo reemplazante del abb, y devolverlo*/
+			reorganizar_flia(arbol, flia, flia_reemplazante);
+		
 			free(flia->padre->clave); //Libero la clave del nodo viejo
 			flia->padre->clave = strdup(reemplazante->clave); //reemplazo la clave, pero hago una copia, porque nodo_destruir la libeta
-
 			dato_nodo = flia->padre->dato; //me guardo el dato del nodo que voy a borrar
-			flia->padre->dato = reemplazante->dato; //Actualizo el dato del que "borre"
-			free(reemplazante); //Ya termine de copiar las cosas del sucesor, libero la memoria pedida para este
+			flia->padre->dato = nodo_destruir(reemplazante); //Actualizo el dato del que "borre", nodo destruir libera la clave y la memoria pedida para el nodo
 			free(flia_reemplazante);
 		}
-		printf("TRANSFORMACION DEL NODO\n");
-		if(flia->padre) printf("El nodo actualizado tiene la clave: %s\n", flia->padre->clave);
 		arbol->cant_elem--;
 		if (flia->cant_hijos != 2) dato_nodo = nodo_destruir(flia->padre); //Porque si es 2 lo obtuve arriba
-
-
-		if (arbol->raiz) printf("La raiz es ahora %s\n", arbol->raiz->clave);
-		else printf("No hay raiz\n");
 		free(flia);
 		return dato_nodo;
 	}
@@ -242,12 +214,7 @@ bool master_search(const abb_t* abb, const char* clave, void* dato, int mode, fa
 	if (!abb || (!abb->cant_elem && mode > 1)) return false; //si no tengo elementos para los casos 2,3,4 al pedo buscar
 
 	bool pertenece = buscar_clave(abb->raiz, clave, flia, mode, abb->func_cmp);
-	if (mode == 3 && pertenece){
-		printf("El padre es %s\n", flia->padre->clave);
-		if (flia->hijo_der) printf("Su hijo  der es %s\n", flia->hijo_der->clave);
 
-	}
-	if (!pertenece && mode == 4) printf("NO ESTA LA CLAVE\n");
 	switch(mode){ //todo queda guardado en la flia ahora supuestamente
 		case 1:
 			if (pertenece){ //reemplazo
@@ -296,7 +263,7 @@ bool buscar_clave(nodo_abb_t* raiz, const char* clave, family_t* flia, int mode,
 		return buscar_clave(raiz->izq, clave, flia, mode, cmp);//Voy a la izquiera
 	}
 	//Si llego hasta aca es que la funcion de comparacion dio cero, veo el tema de hijos
-	if (mode > 1) nodo_cant_hijos(raiz, flia); //Solo si estas en modo borrar te interesa la cantidad de hijos
+	if (mode == 4) nodo_cant_hijos(raiz, flia); //Solo si estas en modo borrar te interesa la cantidad de hijos
 	return true; //Seria el caso de que cmp de cero
 }
 
@@ -307,23 +274,25 @@ void* nodo_destruir(nodo_abb_t* nodo){
 	return dato;
 }
 
-void asignar_padre(abb_t* abb, family_t* flia){
-	//El abuelo adopta a un nieto
-	//Caso 1: No tenes padre, entonces queres borrar la raiz significa, si la raiz no tiene hijos el arbol queda vacio
-	//Si tenes un hijo es izq O der, no tenes 2, te fijas cual es el que vive y esa es la nueva raiz
-	if (!flia->abuelo){  //Asignar padre se llama si tenes cero o un hijo, ergo nunca vas a tener que buscar reemplazante aca
-		if (flia->cant_hijos){
-			abb->raiz = (flia->hijo_izq) ? flia->hijo_izq : flia->hijo_der;
-			return; //Como solo tenes un hijo, la raiz va a ser en donde tengas el hijo
+void reorganizar_flia(abb_t* abb, family_t* flia, family_t* flia_reemplazante){
+	nodo_abb_t* nieto = NULL;
+	if (flia_reemplazante) nieto = flia_reemplazante->hijo_der; //Puede ser NULL como no
+	else nieto = (flia->hijo_izq) ? flia->hijo_izq : flia->hijo_der; //Puede quedarte un nodo o NULL 
+
+	if (!flia_reemplazante){
+		if (!flia->abuelo) abb->raiz = nieto;
+		else{
+			if (flia->es_izq) flia->abuelo->izq = nieto;
+			else flia->abuelo->der = nieto;
 		}
-		abb->raiz = NULL;
-		return;
 	}
-	//Caso 2: tengo padre, pero yo no tengo nuevo_hijo (caso cant_hijos == 0)
-	//Caso 3: tengo padre, y tengo (caso cant_hijos == 1)
-	if (flia->es_izq) flia->abuelo->izq = flia->hijo_izq; //El que voy a borrar esta a la izq o der de su padre
-	else flia->abuelo->der = flia->hijo_der; //Nuevo_hijo puede ser NULL asi que cumpliria los casos
-	return;
+	else{
+		if (!flia_reemplazante->abuelo) flia->padre->der = nieto;
+		else{
+			if (flia->es_izq) flia_reemplazante->abuelo->izq = nieto;
+			else flia_reemplazante->abuelo->der = nieto;
+		}
+	}
 }
 
 nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia){ //Si uso esta es porque tengo dos hijos, busco sucesor

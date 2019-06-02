@@ -218,16 +218,13 @@ static void prueba_abb_volumen(size_t largo, bool debug)
 
     /* Inserta 'largo' parejas en el abb */
     bool ok = true;
-    unsigned claves_random[10] = {5, 2, 8, 1, 3, 4, 6, 9, 7, 10};
+    unsigned claves_random[28] = {5, 2, 8, 1, 3, 4, 6, 9, 7, 10,67,58,15,23,69,76,81,89,82,45,47,40,100,123, 73,27,37,38};
     for (unsigned i = 0; i < largo; i++) {
         valores[i] = malloc(sizeof(int));
         sprintf(claves[i], "%08d", claves_random[i]);
         *valores[i] = i;
         ok = abb_guardar(abb, claves[i], valores[i]); //esto deberia estar afuera
         if (!ok) break;
-    }
-    for (int i = 0; i < largo; i++){
-        printf("%s\n", claves[i]);
     }
     //Desordeno el arreglo
     /*size_t cant_swaps = 0;
@@ -267,10 +264,7 @@ static void prueba_abb_volumen(size_t largo, bool debug)
 
     /* Verifica que borre y devuelva los valores correctos */
     for (size_t i = 0; i < largo; i++) {
-        printf("Voy a borrar %s\n", claves[i]);
         unsigned* borrado = abb_borrar(abb, claves[i]);
-        printf("Borre: %s\n", claves[i]);
-        printf("\n");
         ok = *borrado == *valores[i];
         if (!ok){
           printf("Clave guardada : %s\n", claves[i]);
@@ -324,7 +318,7 @@ void pruebas_abb_alumno()
     prueba_abb_borrar();
     prueba_abb_clave_vacia();
     prueba_abb_valor_null();
-    prueba_abb_volumen(10, true);
+    prueba_abb_volumen(28, true);
 }
 
 void pruebas_volumen_alumno(size_t largo)
