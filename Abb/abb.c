@@ -9,6 +9,7 @@ Corrector: Secchi, Ana
 #include <stdlib.h>
 #include <string.h>
 #include "abb.h"
+#include "pila.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -29,7 +30,7 @@ struct abb{
 struct abb_iter{
 	//COMPLETAR
 	const abb_t* arbol;
-	nodo_abb_t* actual;
+	pila_t* stack;
 };
 
 typedef struct family{
@@ -52,6 +53,7 @@ nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia);
 void reorganizar_flia(abb_t* abb, family_t* flia, family_t* flia_reemplazante);
 void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz);
 family_t* crear_familia(void);
+void abb_in_order_root(nodo_abb_t* raiz, bool visitar(const char *, void *, void *), void* extra);
 /* *****************************************************************
  *                  IMPLEMENTACION PRIMITIVAS DEL ABB
   * *****************************************************************/
@@ -124,7 +126,7 @@ void *abb_borrar(abb_t *arbol, const char *clave){ //clave del que voy a borrar
 		if (!flia->cant_hijos) reorganizar_flia(arbol, flia, NULL);
 
 		else if (flia->cant_hijos == 1) reorganizar_flia(arbol, flia, NULL);
-			
+
 		else{				//La cantidad de hijos es 2 si llego aca
 			family_t* flia_reemplazante = crear_familia();
 			if (!flia_reemplazante){
@@ -134,7 +136,7 @@ void *abb_borrar(abb_t *arbol, const char *clave){ //clave del que voy a borrar
 			nodo_abb_t* reemplazante = buscar_reemplazante(flia->padre->der, flia_reemplazante);
 			//Como maximo el sucesor puede tener un hijo a su derecha
 			reorganizar_flia(arbol, flia, flia_reemplazante);
-		
+
 			free(flia->padre->clave); //Libero la clave del nodo viejo
 			flia->padre->clave = strdup(reemplazante->clave); //reemplazo la clave, pero hago una copia, porque nodo_destruir la libeta
 			dato_nodo = flia->padre->dato; //me guardo el dato del nodo que voy a borrar
@@ -159,29 +161,64 @@ void abb_destruir(abb_t *arbol){
 size_t abb_cantidad(abb_t *arbol){
 	return arbol->cant_elem;
 }
+
+
+void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra){
+	if (!arbol) return;
+	abb_in_order_root(arbol->raiz, visitar, extra);
+	return;
+}
+
+void abb_in_order_root(nodo_abb_t* raiz, bool visitar(const char *, void *, void *), void* extra){
+	if(!raiz) return;
+	abb_in_order_root(raiz->izq, visitar,extra );
+	bool go = visitar(raiz->clave, raiz->dato, extra);
+	if(!go) return;
+	abb_in_order_root(raiz->der, visitar, extra );
+	return;
+}
+
 /* *****************************************************************
  *     IMPLEMENTACION PRIMITIVAS DEL ITERADOR EXTERNO DEL ABB
   * *****************************************************************/
+/*FUNCION AUXILIAR*/
+void apilar_izquierdos(nodo_abb_t* raiz, pila_t* stack){
+	if(!raiz || !stack) return;
+	pila_apilar(stack, raiz);
+	apilar_izquierdos(raiz->izq, stack);
+}
+
+/*PRIMITIVAS*/
 abb_iter_t *abb_iter_in_crear(const abb_t *arbol){
 	abb_iter_t* iter_abb = malloc(sizeof(abb_iter_t));
 	if (!iter_abb) return NULL;
 
 	iter_abb->arbol = arbol;
-	iter_abb->actual = arbol->raiz;
+	iter_abb->stack = pila_crear();
+	apilar_izquierdos(arbol->raiz, iter_abb->stack);
+
 	return iter_abb;
 }
 
 const char *abb_iter_in_ver_actual(const abb_iter_t *iter){
-	return (iter->actual) ? strdup(iter->actual->clave) : NULL;
-	//Creo que tiene que devolver una copia no la original
-	//que despues el usuario se encargue de borrarla
+	nodo_abb_t* tope = pila_ver_tope(iter->stack);
+	return (tope) ? strdup(tope->clave) : NULL;
 }
 
 bool abb_iter_in_al_final(const abb_iter_t *iter){
-	return !iter->actual; //No se bien como funciona porque todas las hojas tienen NULL
+	return pila_esta_vacia(iter->stack);
+}
+
+bool abb_iter_in_avanzar(abb_iter_t *iter){
+	if (abb_iter_in_al_final(iter)) return false;
+	nodo_abb_t* tope = pila_desapilar(iter->stack);
+	if (tope->der)  pila_apilar(iter->stack, tope->der);//apilo el derecho si tiene
+	apilar_izquierdos(tope->izq, iter->stack);//apilo todos los hijos izquierdos
+	return true;
 }
 
 void abb_iter_in_destruir(abb_iter_t* iter){
+	pila_destruir(iter->stack);
 	free(iter);
 }
 
@@ -277,7 +314,7 @@ void* nodo_destruir(nodo_abb_t* nodo){
 void reorganizar_flia(abb_t* abb, family_t* flia, family_t* flia_reemplazante){
 	nodo_abb_t* nieto = NULL;
 	if (flia_reemplazante) nieto = flia_reemplazante->hijo_der; //Puede ser NULL como no
-	else nieto = (flia->hijo_izq) ? flia->hijo_izq : flia->hijo_der; //Puede quedarte un nodo o NULL 
+	else nieto = (flia->hijo_izq) ? flia->hijo_izq : flia->hijo_der; //Puede quedarte un nodo o NULL
 
 	if (!flia_reemplazante){
 		if (!flia->abuelo) abb->raiz = nieto;

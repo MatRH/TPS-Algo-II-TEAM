@@ -20,7 +20,7 @@ typedef void (*abb_destruir_dato_t) (void *);
  *           DECLARACION PRIMITIVAS DEL ABB
   * *****************************************************************/
 
-/*Crea el abb. 
+/*Crea el abb.
 *Devuelve NULL en caso de error
 */
 abb_t* abb_crear(abb_comparar_clave_t cmp, abb_destruir_dato_t destruir_dato);
@@ -55,6 +55,11 @@ bool abb_pertenece(const abb_t *arbol, const char *clave);
  * Pre: La estructura abb fue inicializada
  */
 size_t abb_cantidad(abb_t *arbol);
+
+/*Un iterador interno, que funciona usando la función de callback “visitar”
+ que recibe la clave, el valor y un puntero extra, y devuelve true si se debe
+  seguir iterando, false en caso contrario*/
+void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void *extra);
 
 /* Destruye la estructura liberando la memoria pedida y llamando a la función
  * destruir para cada par (clave, dato).
@@ -94,7 +99,7 @@ bool abb_iter_in_al_final(const abb_iter_t *iter);
 */
 void abb_iter_in_destruir(abb_iter_t* iter);
 
-/*Iterador interno, que funciona usando la función de callback 
+/*Iterador interno, que funciona usando la función de callback
 *“visitar” que recibe la clave, el valor y un puntero extra,
 *y devuelve true si se debe seguir iterando, false en caso contrario
 */

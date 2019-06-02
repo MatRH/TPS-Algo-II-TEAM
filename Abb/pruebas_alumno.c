@@ -17,6 +17,15 @@ Corrector: Secchi, Ana
 int comparar_clave(const char* clave1, const char* clave2){
     return strcmp(clave1, clave2);
 }
+bool what_does_the_fox_say(const char* clave, void* dato, void* extra){
+  if(strcmp(clave, "fox")){
+    char* says = dato;
+    printf("%s\n", says);
+    extra = dato;
+    return false;
+  }
+  return true;
+}
 /* ******************************************************************
  *                        PRUEBAS UNITARIAS
  * *****************************************************************/
@@ -188,6 +197,43 @@ static void prueba_abb_clave_vacia()
     abb_destruir(abb);
 }
 
+static void prueba_abb_iterador_interno()
+{
+    printf("INICIO PRUEBAS ABB ITERADOR INTERNO\n");
+    abb_t* abb = abb_crear(comparar_clave, NULL);
+    char extra[100] = " ";
+
+    char *clave1 = "dog", *valor1 = "woof";
+    char *clave2 = "cat", *valor2 = "miau";
+    char *clave3 = "bird", *valor3 = "tweet";
+    char *clave4 = "mouse", *valor4 = "squeak";
+    char *clave5 = "cow", *valor5 = "moo";
+    char *clave6 = "frog", *valor6 = "croak";
+    char *clave7 = "elephant", *valor7 = "toot";
+    char *clave8 = "duck", *valor8 = "quack";
+    char *clave9 = "fish", *valor9 = "blub";
+    char *clave10 = "seal", *valor10 = "ow ow ow";
+    char *clave11 = "fox", *valor11 = "RING DING DING DING DINGERINGEDING";
+
+    abb_guardar(abb, clave1, valor1);
+    abb_guardar(abb, clave2, valor2);
+    abb_guardar(abb, clave3, valor3);
+    abb_guardar(abb, clave4, valor4);
+    abb_guardar(abb, clave5, valor5);
+    abb_guardar(abb, clave6, valor6);
+    abb_guardar(abb, clave7, valor7);
+    abb_guardar(abb, clave8, valor8);
+    abb_guardar(abb, clave9, valor9);
+    abb_guardar(abb, clave10, valor10);
+    abb_guardar(abb, clave11, valor11);
+
+    abb_in_order(abb, what_does_the_fox_say, extra);
+    print_test("Prueba iterador interno", strcmp(extra, valor11));
+
+    abb_destruir(abb);
+
+}
+
 static void prueba_abb_valor_null()
 {
     printf("INICIO PRUEBAS ABB CON VALOR NULL\n");
@@ -204,6 +250,55 @@ static void prueba_abb_valor_null()
     print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
 
     abb_destruir(abb);
+}
+
+static void prueba_abb_iterador_externo()
+{
+  printf("INICIO PRUEBAS ABB ITERADOR EXTERNO\n");
+  abb_t* abb = abb_crear(comparar_clave, NULL);
+
+  char *clave1 = "dog", *valor1 = "woof";
+  char *clave2 = "cat", *valor2 = "miau";
+  char *clave3 = "bird", *valor3 = "tweet";
+  char *clave4 = "mouse", *valor4 = "squeak";
+  char *clave5 = "cow", *valor5 = "moo";
+  char *clave6 = "frog", *valor6 = "croak";
+  char *clave7 = "elephant", *valor7 = "toot";
+  char *clave8 = "duck", *valor8 = "quack";
+  char *clave9 = "fish", *valor9 = "blub";
+  char *clave10 = "seal", *valor10 = "ow ow ow";
+  char *clave11 = "fox", *valor11 = "RING DING DING DING DINGERINGEDING";
+
+  abb_guardar(abb, clave1, valor1);
+  abb_guardar(abb, clave2, valor2);
+  abb_guardar(abb, clave3, valor3);
+  abb_guardar(abb, clave4, valor4);
+  abb_guardar(abb, clave5, valor5);
+  abb_guardar(abb, clave6, valor6);
+  abb_guardar(abb, clave7, valor7);
+  abb_guardar(abb, clave8, valor8);
+  abb_guardar(abb, clave9, valor9);
+  abb_guardar(abb, clave10, valor10);
+  abb_guardar(abb, clave11, valor11);
+
+  abb_iter_t* iter = abb_iter_in_crear(abb);
+  print_test("Creo el iterador", iter);
+  print_test("El iterador no está al final", !abb_iter_in_al_final(iter));
+  print_test("Puedo ver el actual", abb_iter_in_ver_actual(iter));
+  print_test("Puedo avanzar", abb_iter_in_avanzar(iter));
+  print_test("El iterador no está al final", !abb_iter_in_al_final(iter));
+  print_test("Puedo ver el actual", abb_iter_in_ver_actual(iter));
+  printf("Recorro hasta el final\n" );
+
+  while (!abb_iter_in_al_final(iter)){
+    print_test("Puedo avanzar", abb_iter_in_avanzar(iter));
+  }
+  print_test("El iterador está al final", abb_iter_in_al_final(iter));
+  print_test("No puedo ver el actual", !abb_iter_in_ver_actual(iter));
+  printf("Destruyo el iterador\n");
+  abb_iter_in_destruir(iter);
+
+  abb_destruir(abb);
 }
 
 static void prueba_abb_volumen(size_t largo, bool debug)
@@ -318,6 +413,8 @@ void pruebas_abb_alumno()
     prueba_abb_borrar();
     prueba_abb_clave_vacia();
     prueba_abb_valor_null();
+    prueba_abb_iterador_interno();
+    prueba_abb_iterador_externo();
     prueba_abb_volumen(28, true);
 }
 
