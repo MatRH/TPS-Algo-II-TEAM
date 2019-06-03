@@ -57,7 +57,6 @@ static void prueba_abb_insertar()
     print_test("Prueba abb insertar clave1", abb_guardar(abb1, clave1, valor1));
     print_test("Prueba abb la cantidad de elementos es 1", abb_cantidad(abb1) == 1);
     print_test("Prueba abb obtener clave1 es valor1", abb_obtener(abb1, clave1) == valor1);
-    print_test("Prueba abb obtener clave1 es valor1", abb_obtener(abb1, clave1) == valor1);
     print_test("Prueba abb pertenece clave1, es true", abb_pertenece(abb1, clave1));
     print_test("Prueba abb borrar clave1, es valor1", abb_borrar(abb1, clave1) == valor1);
     print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb1) == 0);
@@ -66,12 +65,10 @@ static void prueba_abb_insertar()
     print_test("Prueba abb insertar clave2", abb_guardar(abb1, clave2, valor2));
     print_test("Prueba abb la cantidad de elementos es 1", abb_cantidad(abb1) == 1);
     print_test("Prueba abb obtener clave2 es valor2", abb_obtener(abb1, clave2) == valor2);
-    print_test("Prueba abb obtener clave2 es valor2", abb_obtener(abb1, clave2) == valor2);
     print_test("Prueba abb pertenece clave2, es true", abb_pertenece(abb1, clave2));
 
     print_test("Prueba abb insertar clave3", abb_guardar(abb1, clave3, valor3));
     print_test("Prueba abb la cantidad de elementos es 2", abb_cantidad(abb1) == 2);
-    print_test("Prueba abb obtener clave3 es valor3", abb_obtener(abb1, clave3) == valor3);
     print_test("Prueba abb obtener clave3 es valor3", abb_obtener(abb1, clave3) == valor3);
     print_test("Prueba abb pertenece clave3, es true", abb_pertenece(abb1, clave3));
 
@@ -301,52 +298,48 @@ static void prueba_abb_iterador_externo()
   abb_destruir(abb);
 }
 
+
 static void prueba_abb_volumen(size_t largo, bool debug)
 {
     printf("INICIO PRUEBAS ABB VOLÚMEN\n");
     abb_t* abb = abb_crear(comparar_clave, NULL);
 
     const size_t largo_clave = 10;
-    char (*claves)[largo_clave] = malloc(largo * largo_clave);
+    char** claves = malloc(sizeof(char*) * largo);
 
     unsigned* valores[largo];
 
-    /* Inserta 'largo' parejas en el abb */
+    // Inserta 'largo' parejas en el abb 
     bool ok = true;
-    unsigned claves_random[28] = {5, 2, 8, 1, 3, 4, 6, 9, 7, 10,67,58,15,23,69,76,81,89,82,45,47,40,100,123, 73,27,37,38};
     for (unsigned i = 0; i < largo; i++) {
         valores[i] = malloc(sizeof(int));
-        sprintf(claves[i], "%08d", claves_random[i]);
+        claves[i] = malloc(sizeof(char) * largo_clave);
+        sprintf(claves[i], "%08d", i); 
         *valores[i] = i;
-        ok = abb_guardar(abb, claves[i], valores[i]); //esto deberia estar afuera
-        if (!ok) break;
     }
     //Desordeno el arreglo
-    /*size_t cant_swaps = 0;
-    while (cant_swaps < 5){
-        size_t rnd_1 = rand() % largo;
-        size_t rnd_2 = rand() % largo;
+    for (size_t i =0 ; i < largo; i++){
+        size_t num_rnd = rand() % largo;
+        if (num_rnd == i) continue;
 
-        if (rnd_1 == rnd_2) continue; // me fijo que sean distintos
-        unsigned* aux_valor = valores[rnd_1];
-        valores[rnd_1] = valores[rnd_2];
-        valores[rnd_2] = aux_valor;
+        unsigned* aux_valor = valores[i];
+        valores[i] = valores[num_rnd];
+        valores[num_rnd] = aux_valor;
 
-        aux_clave = claves[rnd_1];
-        claves[rnd_1] = claves[rnd_2];
-        claves[rnd_2] = aux_clave;
-        cant_swaps++;
+        char* aux_clave = claves[i];
+        claves[i] = claves[num_rnd];
+        claves[num_rnd] = aux_clave;
     }
-
+    //Guardo las claves
     for (unsigned i = 0; i < largo; i++){
-        ok = abb_guardar(abb, claves[i], valores[i]); //esto deberia estar afuera
+        ok = abb_guardar(abb, claves[i], valores[i]); 
         if (!ok) break;
-    }*/
+    }
 
     if (debug) print_test("Prueba abb almacenar muchos elementos", ok);
     if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
 
-    /* Verifica que devuelva los valores correctos */
+    // Verifica que devuelva los valores correctos 
     for (size_t i = 0; i < largo; i++) {
         ok = abb_pertenece(abb, claves[i]);
         if (!ok) break;
@@ -357,7 +350,7 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     if (debug) print_test("Prueba abb pertenece y obtener muchos elementos", ok);
     if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
 
-    /* Verifica que borre y devuelva los valores correctos */
+    // Verifica que borre y devuelva los valores correctos
     for (size_t i = 0; i < largo; i++) {
         unsigned* borrado = abb_borrar(abb, claves[i]);
         ok = *borrado == *valores[i];
@@ -372,32 +365,15 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     if (debug) print_test("Prueba abb borrar muchos elementos", ok);
     if (debug) print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
 
-    /* Destruye el abb y crea uno nuevo que sí libera */
+    // Destruye el abb y crea uno nuevo que sí libera 
     abb_destruir(abb);
-    abb = abb_crear(comparar_clave, free);
-
-    /* Inserta 'largo' parejas en el abb */
-    ok = true;
-    for (size_t i = 0; i < largo; i++) {
-        ok = abb_guardar(abb, claves[i], valores[i]);
-        if (!ok) break;
+    //Libero la memoria pedida para las claves y valores
+    for (size_t i = 0; i < largo; i ++){
+        free(claves[i]);
+        free(valores[i]);
     }
-
     free(claves);
-
-    /* Destruye el abb - debería liberar los enteros */
-    abb_destruir(abb);
-
 }
-/*
-static ssize_t buscar(const char* clave, char* claves[], size_t largo)
-{
-    for (size_t i = 0; i < largo; i++) {
-        if (strcmp(clave, claves[i]) == 0) return (ssize_t) i;
-    }
-    return -1;
-}
-*/
 /* ******************************************************************
  *                        FUNCIÓN PRINCIPAL
  * *****************************************************************/
@@ -415,7 +391,7 @@ void pruebas_abb_alumno()
     prueba_abb_valor_null();
     prueba_abb_iterador_interno();
     prueba_abb_iterador_externo();
-    prueba_abb_volumen(28, true);
+    prueba_abb_volumen(500, true);
 }
 
 void pruebas_volumen_alumno(size_t largo)
