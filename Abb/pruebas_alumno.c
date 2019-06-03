@@ -309,17 +309,17 @@ static void prueba_abb_volumen(size_t largo, bool debug)
 
     unsigned* valores[largo];
 
-    // Inserta 'largo' parejas en el abb 
+    // Inserta 'largo' parejas en el abb
     bool ok = true;
     for (unsigned i = 0; i < largo; i++) {
         valores[i] = malloc(sizeof(int));
         claves[i] = malloc(sizeof(char) * largo_clave);
-        sprintf(claves[i], "%08d", i); 
+        sprintf(claves[i], "%08d", i);
         *valores[i] = i;
     }
     //Desordeno el arreglo
     for (size_t i =0 ; i < largo; i++){
-        size_t num_rnd = rand() % largo;
+        size_t num_rnd = (size_t)rand() % largo;
         if (num_rnd == i) continue;
 
         unsigned* aux_valor = valores[i];
@@ -332,14 +332,14 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     }
     //Guardo las claves
     for (unsigned i = 0; i < largo; i++){
-        ok = abb_guardar(abb, claves[i], valores[i]); 
+        ok = abb_guardar(abb, claves[i], valores[i]);
         if (!ok) break;
     }
 
     if (debug) print_test("Prueba abb almacenar muchos elementos", ok);
     if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
 
-    // Verifica que devuelva los valores correctos 
+    // Verifica que devuelva los valores correctos
     for (size_t i = 0; i < largo; i++) {
         ok = abb_pertenece(abb, claves[i]);
         if (!ok) break;
@@ -365,7 +365,7 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     if (debug) print_test("Prueba abb borrar muchos elementos", ok);
     if (debug) print_test("Prueba abb la cantidad de elementos es 0", abb_cantidad(abb) == 0);
 
-    // Destruye el abb y crea uno nuevo que sí libera 
+    // Destruye el abb y crea uno nuevo que sí libera
     abb_destruir(abb);
     //Libero la memoria pedida para las claves y valores
     for (size_t i = 0; i < largo; i ++){
