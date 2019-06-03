@@ -319,7 +319,7 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     }
     //Desordeno el arreglo
     for (size_t i =0 ; i < largo; i++){
-        size_t num_rnd = rand() % largo;
+        size_t num_rnd = (size_t)rand() % largo;
         if (num_rnd == i) continue;
 
         unsigned* aux_valor = valores[i];
