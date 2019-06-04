@@ -202,7 +202,7 @@ abb_iter_t *abb_iter_in_crear(const abb_t *arbol){
 
 const char *abb_iter_in_ver_actual(const abb_iter_t *iter){
 	nodo_abb_t* tope = pila_ver_tope(iter->stack);
-	return (tope) ? strdup(tope->clave) : NULL;
+	return (tope) ? tope->clave : NULL;
 }
 
 bool abb_iter_in_al_final(const abb_iter_t *iter){
@@ -212,8 +212,8 @@ bool abb_iter_in_al_final(const abb_iter_t *iter){
 bool abb_iter_in_avanzar(abb_iter_t *iter){
 	if (abb_iter_in_al_final(iter)) return false;
 	nodo_abb_t* tope = pila_desapilar(iter->stack);
-	if (tope->der)  pila_apilar(iter->stack, tope->der);//apilo el derecho si tiene
-	apilar_izquierdos(tope->izq, iter->stack);//apilo todos los hijos izquierdos
+	//apilo el derecho y todos sus hijos, como buscar sucesor
+	apilar_izquierdos(tope->der, iter->stack);
 	return true;
 }
 
@@ -279,7 +279,7 @@ bool buscar_clave(nodo_abb_t* raiz, const char* clave, family_t* flia, int mode,
 	*Devuelve true en caso de encontrarla false en caso contrario.
 	*En cualquier caso que sea llamada, el nodo que estoy buscando queda almacenado en flia->padre,
 	*el padre de este nodo, si posee, queda guardado en flia->abuelo, y el parametro es_izq es true
-	*si el nodo que busco borrar esta a la izq de su padre (izq de su abuelo en terminos de family_t)*/
+	*si el nodo que busco esta a la izq de su padre (izq de su abuelo en terminos de family_t)*/
 	if (!raiz){
 		flia->padre = NULL; //No esta el que quiero borrar
 		return false; 

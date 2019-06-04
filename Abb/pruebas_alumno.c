@@ -26,6 +26,13 @@ bool what_does_the_fox_say(const char* clave, void* dato, void* extra){
   }
   return true;
 }
+
+bool visitar(const char *clave, void *valor, void *extra){
+    if (!clave) return false;
+    printf("La clave es: %s\n", clave);
+    return true;
+
+}
 /* ******************************************************************
  *                        PRUEBAS UNITARIAS
  * *****************************************************************/
@@ -249,6 +256,7 @@ static void prueba_abb_valor_null()
     abb_destruir(abb);
 }
 
+
 static void prueba_abb_iterador_externo()
 {
   printf("INICIO PRUEBAS ABB ITERADOR EXTERNO\n");
@@ -374,6 +382,72 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     }
     free(claves);
 }
+
+/*static void iterar_externo_volumen(size_t largo)
+{
+    printf("INICIO PRUEBAS ABB ITERADOR VOLUMEN\n");
+    abb_t* abb = abb_crear(comparar_clave, NULL);
+    const size_t largo_clave = 10;
+    char** claves = malloc(sizeof(char*) * largo);
+
+    unsigned* valores[largo];
+
+    // Inserta 'largo' parejas en el abb
+    bool ok = true;
+    bool debug = true;
+    for (unsigned i = 0; i < largo; i++) {
+        valores[i] = malloc(sizeof(int));
+        claves[i] = malloc(sizeof(char) * largo_clave);
+        sprintf(claves[i], "%08d", i);
+        *valores[i] = i;
+    }
+    //Desordeno el arreglo
+    for (size_t i =0 ; i < largo; i++){
+        size_t num_rnd = (size_t)rand() % largo;
+        if (num_rnd == i) continue;
+
+        unsigned* aux_valor = valores[i];
+        valores[i] = valores[num_rnd];
+        valores[num_rnd] = aux_valor;
+
+        char* aux_clave = claves[i];
+        claves[i] = claves[num_rnd];
+        claves[num_rnd] = aux_clave;
+    }
+    //Guardo las claves
+    for (unsigned i = 0; i < largo; i++){
+        ok = abb_guardar(abb, claves[i], valores[i]);
+        if (!ok) break;
+    }
+
+    if (debug) print_test("Prueba abb almacenar muchos elementos", ok);
+    if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
+
+    // Verifica que devuelva los valores correctos
+    for (size_t i = 0; i < largo; i++) {
+        ok = abb_pertenece(abb, claves[i]);
+        if (!ok) break;
+        ok = abb_obtener(abb, claves[i]) == valores[i];
+        if (!ok) break;
+    }
+
+    if (debug) print_test("Prueba abb pertenece y obtener muchos elementos", ok);
+    if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
+
+
+    
+    abb_in_order(abb, visitar, NULL);
+
+    abb_destruir(abb);
+    //Libero la memoria pedida para las claves y valores
+    for (size_t i = 0; i < largo; i ++){
+        free(claves[i]);
+        free(valores[i]);
+    }
+    free(claves);
+    print_test("Destrui el abb usado en PRUEBA VOLUMEN", true);
+}*/
+
 /* ******************************************************************
  *                        FUNCIÓN PRINCIPAL
  * *****************************************************************/
@@ -391,7 +465,8 @@ void pruebas_abb_alumno()
     prueba_abb_valor_null();
     prueba_abb_iterador_interno();
     prueba_abb_iterador_externo();
-    prueba_abb_volumen(500, true);
+    prueba_abb_volumen(5000, true);
+    //iterar_externo_volumen(1);
 }
 
 void pruebas_volumen_alumno(size_t largo)
