@@ -51,7 +51,7 @@ nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia);
 void reorganizar_flia(abb_t* abb, family_t* flia, family_t* flia_reemplazante);
 void destruir_wrapper(abb_t* arbol, nodo_abb_t* raiz);
 family_t* crear_familia(void);
-void abb_in_order_root(nodo_abb_t* raiz, bool visitar(const char *, void *, void *), void* extra);
+bool abb_in_order_root(nodo_abb_t* raiz, bool visitar(const char *, void *, void *), void* extra);
 /* *****************************************************************
  *                  IMPLEMENTACION PRIMITIVAS DEL ABB
   * *****************************************************************/
@@ -84,7 +84,7 @@ bool abb_guardar(abb_t *arbol, const char *clave, void *dato){
 			else flia->abuelo->der = nuevo_nodo;
 		}
 		arbol->cant_elem++; //Actualizo la cantidad de elementos del abb
-		free(flia); 
+		free(flia);
 		return true;
 	}
 	//Si no entroe en el if anterior es porque el nodo ya se encontraba, NO debo actualizar la cant de elementos
@@ -120,14 +120,14 @@ void *abb_borrar(abb_t *arbol, const char *clave){
 
 	//El nodo que quiero borrar queda guardado en padre SIEMPRE
 	//flia contendra todos los datos del nodo que quiero borrar: quien es su padre (abuelo), sus hijos, etc.
-	bool pertenece = master_search(arbol, clave, NULL, 4, flia); 
+	bool pertenece = master_search(arbol, clave, NULL, 4, flia);
 	if (pertenece){
 		if (!flia->cant_hijos) reorganizar_flia(arbol, flia, NULL); //El que quiero borrar no tiene hijos
 
 		else if (flia->cant_hijos == 1) reorganizar_flia(arbol, flia, NULL); //El que quiero borrar tiene un hijo
 
 		else{				//La cantidad de hijos es 2
-			family_t* flia_reemplazante = crear_familia(); 
+			family_t* flia_reemplazante = crear_familia();
 			//Esta familia contendra los datos del reemplazante (el sucesor del nodo que deseo borrar)
 			if (!flia_reemplazante){
 				free(flia);
@@ -169,13 +169,13 @@ void abb_in_order(abb_t *arbol, bool visitar(const char *, void *, void *), void
 	return;
 }
 
-void abb_in_order_root(nodo_abb_t* raiz, bool visitar(const char *, void *, void *), void* extra){
-	if(!raiz) return;
-	abb_in_order_root(raiz->izq, visitar,extra );
+bool abb_in_order_root(nodo_abb_t* raiz, bool visitar(const char *, void *, void *), void* extra){
+	if(!raiz) return true;
+	if (!abb_in_order_root(raiz->izq, visitar,extra )) return false;
 	bool go = visitar(raiz->clave, raiz->dato, extra);
-	if(!go) return;
-	abb_in_order_root(raiz->der, visitar, extra );
-	return;
+	if(!go) return false;
+	if (!abb_in_order_root(raiz->der, visitar, extra) ) return false;
+	return true;
 }
 
 /* *****************************************************************
@@ -252,7 +252,7 @@ bool master_search(const abb_t* abb, const char* clave, void* dato, int mode, fa
 	*Guardar = 1, Obtener = 2, Pertenece = 3, Borrar = 4
 	*/
 	//si no tengo elementos para los casos 2,3,4 no es necesario buscar, se sabe que no estaran
-	if (!abb || (!abb->cant_elem && mode > 1)) return false; 
+	if (!abb || (!abb->cant_elem && mode > 1)) return false;
 
 	bool pertenece = buscar_clave(abb->raiz, clave, flia, mode, abb->func_cmp);
 
@@ -282,7 +282,7 @@ bool buscar_clave(nodo_abb_t* raiz, const char* clave, family_t* flia, int mode,
 	*si el nodo que busco esta a la izq de su padre (izq de su abuelo en terminos de family_t)*/
 	if (!raiz){
 		flia->padre = NULL; //No esta el que quiero borrar
-		return false; 
+		return false;
 	}
 	flia->padre = raiz;
 
@@ -331,13 +331,13 @@ void reorganizar_flia(abb_t* abb, family_t* flia, family_t* flia_reemplazante){
 		//Al nodo que voy a borrar, le actualizo a lo que apunta (flia->padre me da el nodo que quiero borrar)
 		if (!flia_reemplazante->abuelo) flia->padre->der = nieto;
 
-		else flia_reemplazante->abuelo->izq = nieto; 
+		else flia_reemplazante->abuelo->izq = nieto;
 		//El reemplazante (sucesor) puede tener o no un hijo, hacemos que el padre del reemplazante (que es
 		//flia_reemplazante->abuelo) "adopte" a su nieto
 	}
 }
 
-nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia){ 
+nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia){
 	/*Funcion utilizada para buscar el reemplazante cuando se borra un nodo que tiene dos hijos.
 	*Esta funcion nunca recibira una raiz nula, porque al ser llamada se le pasa el hijo derecho
 	*del nodo que se quiere borrar (y como tiene dos hijos implica que existe y es != NULL)*/
@@ -349,7 +349,7 @@ nodo_abb_t* buscar_reemplazante(nodo_abb_t* raiz, family_t* flia){
 		flia->hijo_der = raiz->der; //El sucesor como maximo tiene un hijo y es derecho si o si
 		return raiz; //Es el sucesor del nodo que deseo borrar
 	}
-	flia->abuelo = raiz; //Actualizo el abuelo de la familia del reemplazante (sucesor) 
+	flia->abuelo = raiz; //Actualizo el abuelo de la familia del reemplazante (sucesor)
 	return buscar_reemplazante(raiz->izq, flia);
 }
 
