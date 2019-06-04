@@ -28,8 +28,16 @@ bool what_does_the_fox_say(const char* clave, void* dato, void* extra){
 }
 
 bool visitar(const char *clave, void *valor, void *extra){
-    if (!clave) return false;
-    printf("La clave es: %s\n", clave);
+    int valor_nodo = *(int*)valor;
+    int numero = *(int*)extra; //Para comparar con el valor del nodo, deben ser iguales siempre
+
+    if (valor_nodo != numero) {
+        print_test("Fallo la prueba de volumen del iterador externo", false);
+        return false;
+    }
+    *(int*)extra = valor_nodo + 1;
+    if (valor_nodo + 1 == 5000) print_test("La prueba fue exitosa", true); 
+    //5000 es el valor pasado para la prueba de volumen
     return true;
 
 }
@@ -383,9 +391,9 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     free(claves);
 }
 
-/*static void iterar_externo_volumen(size_t largo)
+static void prueba_volumen_iterador_externo(size_t largo)
 {
-    printf("INICIO PRUEBAS ABB ITERADOR VOLUMEN\n");
+    printf("INICIO PRUEBA DE VOLUMEN ITERADOR EXTERNO\n");
     abb_t* abb = abb_crear(comparar_clave, NULL);
     const size_t largo_clave = 10;
     char** claves = malloc(sizeof(char*) * largo);
@@ -435,8 +443,8 @@ static void prueba_abb_volumen(size_t largo, bool debug)
     if (debug) print_test("Prueba abb la cantidad de elementos es correcta", abb_cantidad(abb) == largo);
 
 
-    
-    abb_in_order(abb, visitar, NULL);
+    int num = 0; //Servira para ver si recorremos in order el abb
+    abb_in_order(abb, visitar, &num);
 
     abb_destruir(abb);
     //Libero la memoria pedida para las claves y valores
@@ -445,8 +453,8 @@ static void prueba_abb_volumen(size_t largo, bool debug)
         free(valores[i]);
     }
     free(claves);
-    print_test("Destrui el abb usado en PRUEBA VOLUMEN", true);
-}*/
+    print_test("Se destruyo correctamente el abb utilizado para la prueba", true);
+}
 
 /* ******************************************************************
  *                        FUNCIÓN PRINCIPAL
@@ -466,7 +474,7 @@ void pruebas_abb_alumno()
     prueba_abb_iterador_interno();
     prueba_abb_iterador_externo();
     prueba_abb_volumen(5000, true);
-    //iterar_externo_volumen(1);
+    prueba_volumen_iterador_externo(5000);
 }
 
 void pruebas_volumen_alumno(size_t largo)
