@@ -13,254 +13,135 @@ Corrector: Secchi, Ana
 #include <string.h>
 #include <unistd.h> //para el ssize_t
 
-int comparar_clave(const char* clave1, const char* clave2){
-	size_t len1 = strlen(clave1), len2 = strlen(clave2);
-	if (len1 == len2) return 0;
-	if (len1 > len2) return -1;
-	else return 1;
+typedef int (*cmp_func_t) (const void *a, const void *b);
+bool cond_inic_heap(heap_t* heap){
+	return !heap_cantidad(heap) && heap != NULL && heap_esta_vacio(heap);
 }
-/* ******************************************************************
- *                        PRUEBAS UNITARIAS
- * *****************************************************************/
+int heap_strcmp(const void *a, const void* b){
+	return strcmp(a,b);
+}
+int heap_numcmp(const void *x, const void* y){
+	const int* num1 = x;
+	const int* num2 = y;
 
-static void prueba_crear_heap_vacio()
-{
-    heap_t* heap = heap_crear(comparar_clave);
+	if (*num1 == *num2) return 0;
 
-    print_test("Prueba heap crear heap vacio", heap);
-    print_test("Prueba heap la cantidad de elementos es 0", heap_cantidad(heap) == 0);
-    print_test("Prueba heap no hay tope", !heap_ver_max(heap));
-    print_test("Prueba heap desencolar, es NULL", !heap_desencolar(heap));
-
-    heap_destruir(heap);
-
-		void* arreglo[0];
-
-		heap_t* heap_arr = heap_arr_crear(arreglo, 0, comparar_clave);
-		print_test("Prueba heap_arr crear heap vacio", heap);
-		print_test("Prueba heap la cantidad de elementos es 0", heap_cantidad(heap) == 0);
-		print_test("Prueba heap no hay tope", !heap_ver_max(heap));
-		print_test("Prueba heap desencolar, es NULL", !heap_desencolar(heap));
+	return (*num1 > *num2) ? 1 : -1;
 }
 
-static void prueba_heap_encolar()
-{
-    heap_t* heap = heap_crear(comparar_clave);
-
-    char *clave1 = "perro";
-    char *clave2 = "gato";
-    char *clave3 = "vaca";
-
-
-    print_test("Prueba heap insertar clave1", heap_encolar(heap, clave1));
-    print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
-    print_test("Prueba heap pertenece clave1, es true", heap_pertenece(heap, clave1));
-    print_test("Prueba heap borrar clave1, es valor1", heap_borrar(heap, clave1) == valor1);
-    print_test("Prueba heap la cantidad de elementos es 0", heap_cantidad(heap) == 0);
-
-    /* Inserta otros 2 valores y no los borra (se destruyen con el heap) */
-    print_test("Prueba heap insertar clave2", heap_encolar(heap, clave2, valor2));
-    print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
-    print_test("Prueba heap pertenece clave2, es true", heap_pertenece(heap, clave2));
-
-    print_test("Prueba heap insertar clave3", heap_encolar(heap, clave3, valor3));
-    print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
-    print_test("Prueba heap pertenece clave3, es true", heap_pertenece(heap, clave3));
-
-    heap_destruir(heap);
+bool cond_inic_heap_arr(heap_t* heap_arr, size_t n){
+	return heap_cantidad(heap_arr) == n && heap_arr != NULL;
 }
 
-static void prueba_heap_reemplazar()
-{
-    heap_t* heap = heapheap_crear(comparar_clave);
+static void pruebas_heap_vacio(){
+	printf("INICIO PRUEBAS HEAP VACIO\n");
 
-    char *clave1 = "perro", *valor1a = "guau", *valor1b = "warf";
-    char *clave2 = "gato", *valor2a = "miau", *valor2b = "meaow";
+	heap_t* heap = heap_crear(heap_strcmp);
+	print_test("El heap cumple las condiciones iniciales", cond_inic_heap(heap));
+	print_test("Desencolar devuelve NULL", !heap_desencolar(heap));
+	print_test("Ver maximo devuelve NULL", !heap_ver_max(heap));
+	heap_destruir(heap, NULL);
+	print_test("El heap se destruyo correctamente", true);
 
-    /* Inserta 2 valores y luego los reemplaza */
-    print_test("Prueba heap insertar clave1", heap_encolar(heap, clave1, valor1a));
-    print_test("Prueba heap insertar clave2", heap_encolar(heap, clave2, valor2a));
-    print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
-
-    print_test("Prueba heap insertar clave1 con otro valor", heap_encolar(heap, clave1, valor1b));
-    print_test("Prueba heap insertar clave2 con otro valor", heap_encolar(heap, clave2, valor2b));
-    print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
-
-    heap_destruir(heap);
+	void* arr_vacio[] = {}; //Arreglo vacio
+	heap_t* heap_arr = heap_crear_arr(arr_vacio, 0, heap_numcmp);
+	print_test("El heap_arr cumple las condiciones iniciales", cond_inic_heap_arr(heap_arr, 0));
+	print_test("Ver max de arreglo vacio es NULL", !heap_ver_max(heap_arr));
+	print_test("Desencolar devuelve NULL", !heap_desencolar(heap_arr));
+	heap_destruir(heap_arr, NULL);
+	print_test("El heap_arr se destruyo correctamente", true);
 }
 
-static void prueba_heap_reemplazar_con_destruir()
-{
-    heap_t* heap = heap_crear(comparar_clave);
+static void pruebas_heap_encolar(){
+	printf("INICIO PRUEBAS HEAP ENCOLAR\n");
 
-    char *clave1 = "perro", *valor1a, *valor1b;
-    char *clave2 = "gato", *valor2a, *valor2b;
+	heap_t* heap = heap_crear(heap_strcmp);
+	print_test("El heap cumple las condiciones iniciales", cond_inic_heap(heap));
 
-    /* Pide memoria para 4 valores */
-    valor1a = malloc(10 * sizeof(char));
-    valor1b = malloc(10 * sizeof(char));
-    valor2a = malloc(10 * sizeof(char));
-    valor2b = malloc(10 * sizeof(char));
+	char* cad1 = "perro", cad2 = "gato", cad3 = "zorro";
+	print_test("Heap encolar 'perro'", heap_encolar(heap, cad1));
+	print_test("La cantidad de elementos es 1", heap_cantidad(heap) == 1);
+	print_test("Heap ver maximo es 'perro'", heap_ver_max(heap) == cad1);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
 
-    /* Inserta 2 valores y luego los reemplaza (debe liberar lo que reemplaza) */
-    print_test("Prueba heap insertar clave1", heap_encolar(heap, clave1, valor1a));
-    print_test("Prueba heap insertar clave2", heap_encolar(heap, clave2, valor2a));
-    print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
+	print_test("Heap encolar 'gato'", heap_encolar(heap, cad2));
+	print_test("La cantidad de elementos es 1", heap_cantidad(heap) == 2);
+	print_test("Heap ver maximo sigue siendo 'perro'", heap_ver_max(heap) == cad1);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
 
-    print_test("Prueba heap insertar clave1 con otro valor", heap_encolar(heap, clave1, valor1b));
-    print_test("Prueba heap insertar clave2 con otro valor", heap_encolar(heap, clave2, valor2b));
-    print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
+	print_test("Heap encolar 'zorro'", heap_encolar(heap, cad3));
+	print_test("La cantidad de elementos es 1", heap_cantidad(heap) == 3);
+	print_test("Heap ver maximo es 'zorro'", heap_ver_max(heap) == cad3);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
 
-    /* Se destruye el heap (se debe liberar lo que quedó dentro) */
-    heap_destruir(heap);
+	print_test("Heap desencolar devuelve 'zorro'", heap_desencolar(heap) == cad3);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
+	print_test("Heap desencolar devuelve 'perro'", heap_desencolar(heap) == cad1);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
+	print_test("Heap desencolar devuelve 'gato'", heap_desencolar(heap) == cad2);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
+	print_test("Heap desencolar devuelve NULL", !heap_desencolar(heap));
+	print_test("El heap esta vacio", heap_esta_vacio(heap));
+	heap_destruir(heap, NULL);
+	print_test("El heap se destruyo correctamente", true);
 }
 
-static void prueba_heap_borrar()
-{
-    heap_t* heap = heapheap_crear(comparar_clave);
+static void prueba_heap_arr(){
+	printf("INICIO DE PRUEBAS DE HEAP ARR\n");
 
-    char *clave1 = "perro", *valor1 = "guau";
-    char *clave2 = "gato", *valor2 = "miau";
-    char *clave3 = "vaca", *valor3 = "mu";
-
-    /* Inserta 3 valores y luego los borra */
-    print_test("Prueba heap insertar clave1", heap_encolar(heap, clave1, valor1));
-    print_test("Prueba heap insertar clave2", heap_encolar(heap, clave2, valor2));
-    print_test("Prueba heap insertar clave3", heap_encolar(heap, clave3, valor3));
-
-    /* Al borrar cada elemento comprueba que ya no está pero los otros sí. */
-    print_test("Prueba heap pertenece clave3, es verdadero", heap_pertenece(heap, clave3));
-    print_test("Prueba heap borrar clave3, es valor3", heap_borrar(heap, clave3) == valor3);
-    print_test("Prueba heap borrar clave3, es NULL", !heap_borrar(heap, clave3));
-    print_test("Prueba heap pertenece clave3, es falso", !heap_pertenece(heap, clave3));
-    print_test("Prueba heap la cantidad de elementos es 2", heap_cantidad(heap) == 2);
-
-    print_test("Prueba heap pertenece clave1, es verdadero", heap_pertenece(heap, clave1));
-    print_test("Prueba heap borrar clave1, es valor1", heap_borrar(heap, clave1) == valor1);
-    print_test("Prueba heap borrar clave1, es NULL", !heap_borrar(heap, clave1));
-    print_test("Prueba heap pertenece clave1, es falso", !heap_pertenece(heap, clave1));
-    print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
-
-    print_test("Prueba heap pertenece clave2, es verdadero", heap_pertenece(heap, clave2));
-    print_test("Prueba heap borrar clave2, es valor2", heap_borrar(heap, clave2) == valor2);
-    print_test("Prueba heap borrar clave2, es NULL", !heap_borrar(heap, clave2));
-    print_test("Prueba heap pertenece clave2, es falso", !heap_pertenece(heap, clave2));
-    print_test("Prueba heap la cantidad de elementos es 0", heap_cantidad(heap) == 0);
-
-    heap_destruir(heap);
-}
-
-static void prueba_heap_clave_vacia()
-{
-    heap_t* heap = heapheap_crear(comparar_clave);
-
-    char *clave = "", *valor = "";
-
-    print_test("Prueba heap insertar clave vacia", heap_encolar(heap, clave, valor));
-    print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
-    print_test("Prueba heap pertenece clave vacia, es true", heap_pertenece(heap, clave));
-    print_test("Prueba heap borrar clave vacia, es valor", heap_borrar(heap, clave) == valor);
-    print_test("Prueba heap la cantidad de elementos es 0", heap_cantidad(heap) == 0);
-
-    heap_destruir(heap);
-}
-
-static void prueba_heap_valor_null()
-{
-    heap_t* heap = heapheap_crear(comparar_clave);
-
-    char *clave = "", *valor = NULL;
-
-    /* Inserta 1 valor y luego lo borra */
-    print_test("Prueba heap insertar clave vacia valor NULL", heap_encolar(heap, clave, valor));
-    print_test("Prueba heap la cantidad de elementos es 1", heap_cantidad(heap) == 1);
-    print_test("Prueba heap pertenece clave vacia, es true", heap_pertenece(heap, clave));
-    print_test("Prueba heap borrar clave vacia, es valor NULL", heap_borrar(heap, clave) == valor);
-    print_test("Prueba heap la cantidad de elementos es 0", heap_cantidad(heap) == 0);
-
-    heap_destruir(heap);
-}
-
-static void prueba_heap_volumen(size_t largo, bool debug)
-{
-    heap_t* heap = heapheap_crear(comparar_clave);
-
-    const size_t largo_clave = 10;
-    char (*claves)[largo_clave] = malloc(largo * largo_clave);
-
-    unsigned* valores[largo];
-
-    /* Inserta 'largo' parejas en el heap */
-    bool ok = true;
-    for (unsigned i = 0; i < largo; i++) {
-        valores[i] = malloc(sizeof(int));
-        sprintf(claves[i], "%08d", i);
-        *valores[i] = i;
-        ok = heap_encolar(heap, claves[i], valores[i]);
-        if (!ok) break;
-    }
-
-    if (debug) print_test("Prueba heap almacenar muchos elementos", ok);
-    if (debug) print_test("Prueba heap la cantidad de elementos es correcta", heap_cantidad(heap) == largo);
-
-
-    if (debug) print_test("Prueba heap pertenece y obtener muchos elementos", ok);
-    if (debug) print_test("Prueba heap la cantidad de elementos es correcta", heap_cantidad(heap) == largo);
-
-    /* Verifica que borre y devuelva los valores correctos */
-    for (size_t i = 0; i < largo; i++) {
-        ok = heap_borrar(heap, claves[i]) == valores[i];
-        if (!ok) break;
-    }
-
-    if (debug) print_test("Prueba heap borrar muchos elementos", ok);
-    if (debug) print_test("Prueba heap la cantidad de elementos es 0", heap_cantidad(heap) == 0);
-
-    /* Destruye el heap y crea uno nuevo que sí libera */
-    heap_destruir(heap);
-    heap = heap_crear(comparar_clave);
-
-    /* Inserta 'largo' parejas en el heap */
-    ok = true;
-    for (size_t i = 0; i < largo; i++) {
-        ok = heap_encolar(heap, claves[i], valores[i]);
-        if (!ok) break;
-    }
-
-    free(claves);
-
-    /* Destruye el heap - debería liberar los enteros */
-    heap_destruir(heap);
+	void* arr_vacio[] = {};
+	heap_t* heap_arr = heap_crear_arr(arr_vacio, 0, heap_numcmp);
+	print_test("El heap_arr cumple las condiciones iniciales", cond_inic_heap_arr(heap_arr, 0));
 
 }
-/*
-static ssize_t buscar(const char* clave, char* claves[], size_t largo)
-{
-    for (size_t i = 0; i < largo; i++) {
-        if (strcmp(clave, claves[i]) == 0) return (ssize_t) i;
-    }
-    return -1;
+
+static void prueba_heap_destruir(){
+	printf("INICIO PRUEBAS DE DESTRUCCION DEL HEAP\n");
+	printf("\nPrueba 1: destruir pasandole parametro NULL\n");
+
+	heap_t* heap = heap_crear(heap_strcmp);
+	print_test("El heap cumple las condiciones iniciales", cond_inic_heap(heap));
+
+	char* cad1 = "toro", cad2 = "zorro", cad3 = "rinoceronte";
+
+	print_test("Heap encolar 'toro'", heap_encolar(heap, cad1));
+	print_test("Heap encolar 'zorro'", heap_encolar(heap, cad2));
+	print_test("Heap encolar 'rinoceronte'", heap_encolar(heap, cad3));
+	print_test("La cantidad de elementos es 3 y el heap no esta vacio", !heap_esta_vacio(heap) && heap_cantidad(heap) == 3);
+	print_test("El maximo es 'zorro'", heap_ver_max(heap) == cad2);
+	heap_destruir(heap, NULL);
+	print_test("Se destruyo correctamente el heap con el parametro NULL", true);
+
+	printf("\nPrueba 2: destruir pasandole un parametro distinto de NULL\n");
+
+	heap_t* heap_2 = heap_crear(heap_numcmp); //no se si esta funciona para este caso DEBUG
+	print_test("El heap cumple las condiciones iniciales", cond_inic_heap(heap_2));
+
+	int *num_1 = malloc(sizeof(int));
+	int *num_2 = malloc(sizeof(int));
+	int *num_3 = malloc(sizeof(int));
+	int *num_4 = malloc(sizeof(int));
+
+	*num_1 = 314;
+	*num_2 = 73;
+	*num_3 = 69;
+	*num_4 = 32;
+
+	print_test("Heap encolar num_1", heap_encolar(heap_2, num_1));
+	print_test("Heap encolar num_2", heap_encolar(heap_2, num_2));
+	print_test("Heap encolar num_3", heap_encolar(heap_2, num_3));
+	print_test("Heap encolar num_4", heap_encolar(heap_2, num_4));
+	print_test("La cantidad de elementos es 4 y el heap no esta vacio", !heap_esta_vacio(heap_2) && heap_cantidad(heap_2) == 4);
+	print_test("El maximo es num_1", *(int*)heap_ver_max(heap_2) == *num_1);
+	heap_destruir(heap_2, free);
+	print_test("Se destruyo correctamente el heap con el parametro free", true);
 }
-*/
-/* ******************************************************************
- *                        FUNCIÓN PRINCIPAL
- * *****************************************************************/
 
+static void prueba_heapsort(){
+	printf("INICIO PRUEBA HEAPSORT\n");
 
-void pruebas_heap_alumno()
-{
-    /* Ejecuta todas las pruebas unitarias. */
-    prueba_crear_heap_vacio();
-    prueba_heap_encolar();
-    prueba_heap_reemplazar();
-    prueba_heap_reemplazar_con_destruir();
-    prueba_heap_borrar();
-    prueba_heap_clave_vacia();
-    prueba_heap_valor_null();
-    prueba_heap_volumen(5000, true);
 }
 
-void pruebas_volumen_alumno(size_t largo)
-{
-    prueba_heap_volumen(largo, false);
+static void prueba_volumen(size_t volumen){
+	
 }
