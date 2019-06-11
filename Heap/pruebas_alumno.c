@@ -6,7 +6,6 @@ Corrector: Secchi, Ana
 */
 #include "heap.h"
 #include "testing.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -28,12 +27,19 @@ int heap_numcmp(const void *x, const void* y){
 	return (*num1 > *num2) ? 1 : -1;
 }
 
+int min_strcmp(const void *a, const void* b){
+	return strcmp(b,a); 
+}
+
 bool cond_inic_heap_arr(heap_t* heap_arr, size_t n){
 	return heap_cantidad(heap_arr) == n && heap_arr != NULL;
 }
 
 static void pruebas_heap_vacio(){
 	printf("INICIO PRUEBAS HEAP VACIO\n");
+
+	printf("EL MAYOR ES: \n");
+	(min_strcmp("A", "B") > 0) ? printf("A\n") : printf("B\n");
 
 	heap_t* heap = heap_crear(heap_strcmp);
 	print_test("El heap cumple las condiciones iniciales", cond_inic_heap(heap));
@@ -139,11 +145,43 @@ static void prueba_heap_destruir(){
 /*static void prueba_heapsort(){
 	printf("INICIO PRUEBA HEAPSORT\n");
 }*/
+static void prueba_heap_minimo(){
+	printf("PRUEBA HEAP MINIMO\n");
+	heap_t* heap = heap_crear(min_strcmp);
+	print_test("El heap cumple las condiciones iniciales", cond_inic_heap(heap));
+
+	char *cad1 = "A", *cad2 = "B", *cad3 = "B";
+
+	print_test("Heap encolar A", heap_encolar(heap, cad1));
+	print_test("La cantidad de elementos es 1", heap_cantidad(heap) == 1);
+	print_test("Heap ver maximo es A", heap_ver_max(heap) == cad1);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
+
+	print_test("Heap encolar B", heap_encolar(heap, cad2));
+	print_test("La cantidad de elementos es 2", heap_cantidad(heap) == 2);
+	print_test("Heap ver maximo sigue siendo A", heap_ver_max(heap) == cad1);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
+
+	print_test("Heap encolar C", heap_encolar(heap, cad3));
+	print_test("La cantidad de elementos es 3", heap_cantidad(heap) == 3);
+	print_test("Heap ver maximo es A", heap_ver_max(heap) == cad1);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap)); //hasta aca anda
+
+	print_test("Heap desencolar devuelve A", heap_desencolar(heap) == cad1);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
+	print_test("Heap desencolar devuelve B", heap_desencolar(heap) == cad2);
+	print_test("El heap no esta vacio", !heap_esta_vacio(heap));
+	print_test("Heap desencolar devuelve C", heap_desencolar(heap) == cad3);
+	print_test("El heap esta vacio", heap_esta_vacio(heap));
+	print_test("Heap desencolar devuelve NULL", !heap_desencolar(heap));
+	heap_destruir(heap, NULL);
+	print_test("El heap se destruyo correctamente", true);
+
+}
 
 
 
-static void prueba_heap_volumen(size_t largo)
-{
+static void prueba_heap_volumen(size_t largo){
     printf("INICIO PRUEBAS HEAP VOLÚMEN\n");
     heap_t* heap = heap_crear(heap_strcmp);
 
@@ -155,9 +193,6 @@ static void prueba_heap_volumen(size_t largo)
     for (unsigned i = 0; i < largo; i++) {
         claves[i] = malloc(sizeof(char) * largo_clave);
         sprintf(claves[i], "%08d", i);
-    }
-    //Encolo las claves
-    for (unsigned i = 0; i < largo; i++){
         ok = heap_encolar(heap, claves[i]);
         if (!ok){
         	print_test("Falla encolando muchos elementos", ok);
@@ -194,12 +229,13 @@ static void prueba_heap_volumen(size_t largo)
     free(claves);
 }
 
+
 void pruebas_heap_alumno()
 {
     /* Ejecuta todas las pruebas unitarias. */
     pruebas_heap_vacio();
     pruebas_heap_encolar();
     prueba_heap_destruir();
-    prueba_heap_volumen(1000);
-    //prueba_heapsort();
+    prueba_heap_volumen(10000);
+    prueba_heap_minimo();
 }
