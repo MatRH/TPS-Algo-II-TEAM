@@ -46,14 +46,16 @@ heap_t *heap_crear(cmp_func_t cmp){
 heap_t *heap_crear_arr(void *arreglo[], size_t n, cmp_func_t cmp){
 	heap_t* heap = malloc(sizeof(heap_t));
 	if (!heap) return NULL;
-	size_t capacidad = 1 + n + n / 2;
+	size_t capacidad = 1 + n + n / 2; //para que tenga espacio libre extra, proporcional al asignado
 	void **arr = malloc(sizeof(void*) * capacidad);
-	if (!arr) return NULL;
-	copiar_arreglo(arreglo, n, arr); //Copia el arreglo pasado por parametro al arreglo de destino que hemos creado
-
+	if (!arr){
+		free(heap);
+		return NULL;
+	}
+	copiar_arreglo(arreglo, n, arr); //Copia el arreglo pasado por parametro al arreglo de destino(arr)
 	heap->datos = heapify(arr, cmp, n);
 	heap->cant_elem = n;
-	heap->capacidad = capacidad; //para que tenga espacio libre extra, proporcional al asignado
+	heap->capacidad = capacidad;
 	heap->cmp = cmp;
 	return heap;
 
@@ -90,11 +92,10 @@ bool heap_encolar(heap_t *heap, void *elem){
 
 void *heap_desencolar(heap_t *heap){
 	if(!heap || !heap->cant_elem) return NULL; 
-	void** arr = heap->datos;
-	void* tope = arr[0];
+	void* tope = heap->datos[0];
 	//cambio la raiz por el último y a su vez actualizo la cantidad de elementos
-	swap(arr, 0, --heap->cant_elem);
-	downheap(arr, 0, heap->cant_elem, heap->cmp);
+	swap(heap->datos, 0, --heap->cant_elem);
+	downheap(heap->datos, 0, heap->cant_elem, heap->cmp);
 	return tope;
 }
 
@@ -104,15 +105,15 @@ void heap_sort(void *elementos[], size_t cant, cmp_func_t cmp){
 	//Segundo paso, iteramos y swapeamos la raiz con el "ultimo relativo"
 	for (size_t i = cant - 1; i > 0; i--){  //i va a ser tu "ultimo relativo"
 		swap(elementos, 0, i); //Swapeo el primer elemento del arreglo con el ultimo
-		downheap(elementos, 0, i - 1, cmp);
+		downheap(elementos, 0, i, cmp);
 	}
 }
 
-//Funciones auxiliares
+//-------------------------------------FUNCIONES AUXILIARES------------------------------------------------------
 void** heapify(void** arr, cmp_func_t cmp, size_t n){
 	/*Reacomoda los elementos del arreglo para que se cumpla la propiedad de heap*/
 	//Aplico downheap desde (n/2) - 1 hacia arriba
-	size_t pos = (n / 2) - 1;
+	size_t pos = (n - 1 / 2) - 1;
 	for (size_t i = pos; (int)i >= 0; i--) downheap(arr, i, n, cmp);
 	return arr;
 }
@@ -122,7 +123,7 @@ bool heap_redimensionar(heap_t* heap){
 	void** datos_nuevo = realloc(heap->datos, heap->capacidad * sizeof(void*));
 	if (!datos_nuevo){
 		free(heap); //Libero la memoria pedida para heap cuando lo cree
-		return false; //Los datos se liberan solos al fallar
+		return false;
 	}
 	heap->datos = datos_nuevo;
 	return true;
@@ -146,7 +147,7 @@ void downheap(void** arr, size_t pos, size_t tam, cmp_func_t cmp){
 
 void upheap(void** arr, size_t pos, size_t tam, cmp_func_t cmp){
 	if (pos == 0 || pos > tam) return;
-	size_t padre = (pos - 1 == 1) ? 1 : (pos - 1) / 2; //Porque cuando pasas 3 cosas, (2-1) / 2 da cero y esta mal, tenes que comparar con padre 1 al que esta en la pos 2 
+	size_t padre = (pos - 1 == 1) ? 1 : (pos - 1) / 2;
 
 	if (cmp(arr[padre], arr[pos]) < 0){
 		swap(arr, pos, padre);
