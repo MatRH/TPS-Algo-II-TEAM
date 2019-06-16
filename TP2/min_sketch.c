@@ -24,7 +24,7 @@ struct min_sketch{ //El typedef esta hecho en el .h
   	funcion_de_hash f3;
   	int* arr1;
   	int* arr2;
-  	int* arr3;  //La clase que explicaron dijeron 3, pero bue se ve desp
+  	int* arr3;
   	heap_t* heap;
 };
 //Declaraciones funciones auxiliares
@@ -76,7 +76,7 @@ void min_sketch_print(min_sketch_t* min_sketch){
 	size_t frec = 0; //FLAG
 	while(!pila_esta_vacia(pila)){
 		tupla_t* tupla = pila_desencolar(pila);
-		(frec != tupla->frec) ? fprintf(stdout, "\n%ld ", tupla->frec): fprintf(stdout, "%s", ", "); 
+		(frec != tupla->frec) ? fprintf(stdout, "\n%ld ", tupla->frec): fprintf(stdout, "%s", ", ");
 		//Imprimimos la cadena ahora
 		fprintf(stdout, "%s", tupla->tag);
 		destruir_tupla(tupla); //No se si tiene memoria dinamica o que onda todavia
@@ -142,7 +142,7 @@ void update_frequency(min_sketch_t* min_sketch, const char *tweet, size_t* min){
 	size_t pos3 = min_sketch->f3(tweet);
 
 	int min1 = min_sketch->arr1[pos1] ++; //Aumento la frecuencia una unidad para todos los arreglos
-	int min2 = min_sketch->arr2[pos2] ++; 
+	int min2 = min_sketch->arr2[pos2] ++;
 	int min3 = min_sketch->arr3[pos3] ++;
 
 	*min = obtener_minimo(min1, min2, min3);
