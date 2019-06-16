@@ -17,7 +17,8 @@ Corrector: Secchi, Ana
 
 //Declaraciones funciones auxiliares
 bool numeros_validos(const char* cad1, const char* cad2);
-
+char **split(const char *str, char sep);
+void free_strv(char *strv[]);
 /*Asimismo, se pide que se imprima la frecuencia estimada para poder realizar
 durante la corrección una comparación con la frecuencia exacta. La salida debe
 ser como se indica a continuación, con separadores numerados entre cada grupo
