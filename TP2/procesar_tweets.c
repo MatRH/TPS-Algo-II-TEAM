@@ -40,8 +40,8 @@ int main(int argc, char* argv[]){
     /*El programa deberá imprimir por salida estándar (stdout) el histórico
      de los k TTs aproximados cada n lineas*/
     int k = argv[1];
-    int n = argv[2];
+    int n = argv[2]; //hay que chequear que sean numeros validos
 
     return 0;
   }
-}
+
