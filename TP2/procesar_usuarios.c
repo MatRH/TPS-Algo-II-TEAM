@@ -46,6 +46,13 @@ less de Unix para leerlo, ya que no lo carga en memoria: less tweets.txt.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "strutil.h"
+#include "lista.h"
+
+typedef struct registro{
+  char* usuario;
+  lista_t* tweets;
+}
 
 int main(int argc, char* argv[]){
     if(argc != 2){
