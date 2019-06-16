@@ -11,6 +11,31 @@ Corrector: Secchi, Ana
 #include "heap.h"
 #include "min_sketch.h"
 
+/*Adeodato Simó dato@fi.uba.ar a través de googlegroups.com
+
+vie., 14 jun. 0:43 (hace 2 días)
+
+para fiuba-7541rw-alu
+
+TL;DR: largo sugerido: n*100.
+
+El TAD count min sketch tiene dos “variables” o parámetros: la cantidad de arreglos (o, lo que es lo mismo, la cantidad de funciones hash usadas); y el largo de los arreglos.
+
+La cantidad de funciones hash suele ser fija, entre 2 y 3. No obstante, no hay nada que impidiera tomar un arreglo de funciones en el constructor. (No es necesario que lo hagan.)
+
+En cuanto al largo de los arreglos: a diferencia de —por ejemplo— el TAD hash, el cual redimensiona su arreglo según se añaden elementos, el count min sketch jamás se redimensiona (no solo es una de sus propiedades, es que, además, es físicamente imposible hacerlo). Por tanto, el largo de los arreglos se fija en el constructor. ¿A qué valor fijar el largo en el constructor?
+
+Para fijarlo en el constructor, hay dos opciones: usar un número fijo, siempre el mismo (por ejemplo, 10.000); o recibir el largo como parámetro. Esto último es lo más razonable, porque sólo quien crea y usa el TAD sabe la magnitud de datos que va a procesar.
+
+Es todo un tema, como usuario del TAD count min sketch, qué largo elegir, pues entran varios factores en juego. Entonces les propongo las siguientes recomendaciones para el TP2:
+
+    cada vez que llamen al constructor del count min sketch (básicamente, una vez al principio del programa) estaría bien pasar como largo el valor n * 100. (Si ya usan otro valor y las pruebas aproximadas pasan okay, desde luego lo pueden dejar.)
+    “las pruebas aproximadas pasan okay” si los valores de similitud están entre 0.9 y 1.0, y no hay preponderancia de 1.0.
+    les recomiendo que tomen el largo en el constructor, o sea que no usen un número fijo como 10.000. Les va a llevar menos tiempo implementar el cambio al constructor, que encontrar un valor fijo tal que las pruebas aproximadas pasen okay.
+
+Cualquier aclaración que necesiten, no duden en responder a este correo.
+
+-d */
 typedef size_t (*funcion_de_hash)(const char*);
 
 typedef struct tupla{  //tupla = (frecuencia, tag)
