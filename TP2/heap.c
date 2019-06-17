@@ -10,12 +10,8 @@ Corrector: Secchi, Ana
 #include <stdbool.h>
 #include <stddef.h>
 #include "heap.h"
+#include "tupla.h"
 #define TAMANIO_INICIAL (size_t) 100
-
-typedef struct tupla{  //tupla = (frecuencia, tag)
-	const char* tag;  //No se si es const pero bueno
-	size_t frec;
-} tupla_t;
 
 struct heap{
 	void** datos;
@@ -114,11 +110,11 @@ void heap_sort(void *elementos[], size_t cant, cmp_func_t cmp){
 	}
 }
 
-bool heap_actualizar(heap_t* heap, const char* clave){
+bool heap_actualizar(heap_t* heap, char* clave, size_t frec){
 	for (size_t i = 0; i < heap->cant_elem; i++){
 		tupla_t* tupla = heap->datos[i];
-		if (!strcmp(tupla->tag, clave)){ //Son iguales 
-			tupla->frec++;
+		if (!strcmp(tupla_tag(tupla), clave)){ //Son iguales 
+			tupla_actualizar(tupla, frec); //Actualiza la frecuencia
 			downheap(heap->datos, i, heap->cant_elem, heap->cmp);
 			return true;
 		}

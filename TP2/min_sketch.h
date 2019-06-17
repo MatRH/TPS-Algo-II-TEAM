@@ -26,7 +26,4 @@ void min_sketch_print(min_sketch_t* min_sketch); //Opcion 2
  */
 void destruir_min_sketch(min_sketch_t* min_sketch);
 
-
-
-
 #endif

@@ -83,7 +83,7 @@ void *heap_ver_max(const heap_t *heap);
 void *heap_desencolar(heap_t *heap);
 
 /*Utilizado en el tp2 para actualizar la frecuencia de la clave guardada en el heap*/
-bool heap_actualizar(heap_t* heap, const char* clave);
+bool heap_actualizar(heap_t* heap, char* clave, size_t frec);
 
 
 void pruebas_heap_alumno(void);

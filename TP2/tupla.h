@@ -17,6 +17,20 @@ typedef struct tupla tupla_t;
  */
 tupla_t* tupla_crear(char* clave, size_t frec);
 
+/*Devuelve la frecuencia del tag
+ *Pre: la estructura tupla fue inicializada
+ */
+size_t tupla_frec(tupla_t* tupla);
+
+/*Devuelve el tag de la tupla
+ *Pre: la estructura tupla fue inicializada
+ */
+char* tupla_tag(tupla_t* tupla);
+
+/*Actualiza la frecuencia de la tupla
+ *Pre: la estructura tupla fue inicializada*/
+void tupla_actualizar(tupla_t* tupla, size_t frec);
+
 //void tupla_sort();
 
 /*Destruye la estructura tupla

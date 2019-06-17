@@ -23,6 +23,18 @@ tupla_t* tupla_crear(char* clave, size_t frec){
 	return tupla_t;
 }
 
+size_t tupla_frec(tupla_t* tupla){
+	return tupla->frec;
+}
+
+void tupla_actualizar(tupla_t* tupla, size_t frec){
+	tupla->frec = frec;
+}
+
+char* tupla_tag(tupla_t* tupla){
+	return tupla->tag;
+}
+
 //tupla_sort(){}
 
 void tupla_destruir(tupla_t* tupla){
