@@ -37,6 +37,6 @@ void tupla_actualizar(tupla_t* tupla, size_t frec);
  *Pre: la estructura tupla fue inicializada
  *Post: la estructura tupla fue destruida
  */
-void tupla_destruit(tupla_t* tupla);
+void tupla_destruir(tupla_t* tupla);
 
 #endif

@@ -8,6 +8,7 @@ Corrector: Secchi, Ana
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "tupla.h"
 
 struct tupla{  //tupla = (frecuencia, tag)
 	char* tag;  
