@@ -21,7 +21,7 @@ tupla_t* tupla_crear(char* clave, size_t frec){
 
 	tupla->tag = strdup(clave);
 	tupla->frec = frec;
-	return tupla_t;
+	return tupla;
 }
 
 size_t tupla_frec(tupla_t* tupla){

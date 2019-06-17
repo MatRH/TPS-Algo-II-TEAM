@@ -18,11 +18,11 @@ struct pila {
  * *****************************************************************/
 // Crea una pila.
 // Post: devuelve una nueva pila vacía.
-pila_t* pila_crear(){
+pila_t* pila_crear(int k){
 	pila_t* pila = malloc(sizeof(pila_t));
 	if (!pila) return NULL;
 	pila->cantidad = 0;
-	pila->datos = malloc(10*(sizeof(void*)));
+	pila->datos = malloc(sizeof(void*) * (long unsigned int)k);
 	if (!(pila->datos)){
 		free(pila);
 		return NULL;

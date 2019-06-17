@@ -8,118 +8,96 @@ Corrector: Secchi, Ana
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
 #include "min_sketch.h"
-
+#include "strutil.h"
+#define CANT_PARAM 3
+//Recibis n que es cantidad de lineas, y k el ranking
 
 //Declaraciones funciones auxiliares
+void imprimir_error(char* error_sms);
 bool numeros_validos(const char* cad1, const char* cad2);
-char **split(const char *str, char sep);
-void free_strv(char *strv[]);
-/*Asimismo, se pide que se imprima la frecuencia estimada para poder realizar
-durante la corrección una comparación con la frecuencia exacta. La salida debe
-ser como se indica a continuación, con separadores numerados entre cada grupo
-de TT; por ejemplo, para una entrada de 9 líneas, con n=4 y k=2 la salida sería
-del estilo:
+void leer_tweets(min_sketch_t* min_sketch, FILE* archivo, int n, int k);
 
-  --- 1
-  7 pesquisa
-  2 zombietalk
-  --- 2
-  14 niley
-  3 squarespace
-  --- 3
-  1 charlotte
+//Programa principal
+int main(int argc, char const *argv[]){ //0 si anda bien 1 en caso contrario
+	if (argc != 3){
+		imprimir_error("Error: Cantidad erronea de parametros");
+		return 1;
+	}
+	FILE* archivo = stdin;
+	if (!archivo){
+		imprimir_error("Error: archivo fuente inaccesible");
+		return 1;
+	}
+	//Chequeo que los parametros referidos a los numeros (n y k) sean validos
+	if (!numeros_validos(argv[1], argv[2])){
+		imprimir_error("Error: Parametros erroneos");
+		return 1;
+	}
+	int n = atoi(argv[1]);
+	int k = atoi(argv[2]);
 
-*/
-
-int main(int argc, char* argv[]){
-    if(argc != 3){
-      fprintf(stderr, "%s\n", "Error: Cantidad erronea de parametros");
-      return 1;
-    }
-    FILE* archivo = stdin;
-    if(!archivo){
-      fprintf(stderr, "%s\n", "Error: archivo fuente inaccesible");
-      return 1;
-    }
-    //El programa deberá imprimir por salida estándar (stdout) el histórico
-    //de los k TTs aproximados cada n lineas
-    if (!numeros_validos(argv[1], argv[2])){
-      fprintf(stderr, "%s\n", "Error: Parametros errones");
-      return 1;
-    }
-    size_t k = atoi(argv[1]);
-    size_t n = atoi(argv[2]);
-    //Si hasta aca no hubo errores tenemos todo para comenzar a hacer la magia de procesar tweets
-    min_sketch_t* min_sketch = min_sketch_crear(k * 100); //Lo de 100 creo que dijo Dato en un mail no puedo chequear ahora
-    if (!min_sketch) return 1;
-    //Aca tiene que leer cada n lineas e imprimir las k mejores del momento
-    size_t num_bytes = 0, bytes_leidos, cont_lineas = 0, linea = 1; //Linea es usado para que me de la salida que piden
-    char* cadena = NULL;
-
-    while(!feof(archivo)){
-      if (cont_lineas++ == n){
-        fprintf(stdout, "\n--- %ld", linea++);
-        min_sketch_print(min_sketch);
-        cont_lineas = 1;
-      }
-      getline(&cadena, &num_bytes, archivo);
-      char** strv = split(cadena, ','); //Esta modificado para que no le de bola a los espacios
-      if (!strv){
-        min_sketch_destruir(min_sketch); //hay que modificarla
-        return 1; //No se si hay que imprimir un error
-      }
-      size_t pos_aux = 0;
-      while (strv[pos_aux] != NULL) min_sketch_update(min_sketch, strv[pos_aux++], k);
-      free_strv(strv);
-    }
-    //printf("\n"); //No se si faltara este printf
-    return 0;
+	//Creo el min_sketch
+	min_sketch_t* min_sketch = min_sketch_crear(k);
+	if (!min_sketch){
+		imprimir_error("Error: Falla durante la ejecucion");
+		return 1;
+	}
+	//Si llegamos a esta instancia todo se creo en orden
+	leer_tweets(min_sketch, archivo, n, k);
+	min_sketch_destruir(min_sketch);
+	return 0;
 }
 
-//Funciones auxiliares
+/* *****************************************************************
+ *                      FUNCIONES AUXILIARES
+  * *****************************************************************/
+void imprimir_error(char* error_sms){
+	/*Imprime el mensaje de error pasado por parametro*/
+	fprintf(stderr, "%s\n", error_sms);
+}
+
 bool numeros_validos(const char* cad1, const char* cad2){
-  /*Recibe dos cadenas. Devuelve true si las cadenas son un numero,
-  false en caso contrario*/
-  bool valido = true;
-  for (size_t i = 0; i < strlen(cad1); i++) valido &= isdigit(cad1[i]) != 0;
-  for (size_t i = 0; i < strlen(cad2); i++) valido &= isdigit(cad2[i]) != 0;
-  return valido;
+	/*Recibe dos cadenas. Devuelve true si las cadenas son un numero,
+  	false en caso contrario*/
+  	bool valido = true;
+ 	for (size_t i = 0; i < strlen(cad1); i++) valido &= isdigit(cad1[i]) != 0;
+ 	for (size_t i = 0; i < strlen(cad2); i++) valido &= isdigit(cad2[i]) != 0;
+  	return valido;
 }
 
-char **split(const char *str, char sep){
-  size_t long_str = strlen(str) + 1; //La tenes podes pasarla por parametro
-  size_t cad_mas_larga = 0;
-  size_t long_ideal = contar_separadores(str, sep, &cad_mas_larga);
+void leer_tweets(min_sketch_t* min_sketch, FILE* archivo, int n, int k){
+	/*Lee los tweets del archivo pasado por parametro*/
+	char* cadena = NULL;
+	size_t num_bytes = 0, cont_lineas = 0, indice = 1;
+	long int bytes_leidos;
+	//Indice es para dar la salida pedida "--- indice"
 
-  //Creo el vector
-  char** str_vector = malloc(sizeof(char*) * long_ideal);
-  if (!str_vector) return NULL;
+	while (!feof(archivo)){ //Mietras no llegue al final del archivo leo lineas
+		if (cont_lineas == n){ //Imprimo los TTs
+			fprintf(stdout, "--- %ld", indice++);
+			min_sketch_print(min_sketch, k); //Se encarga de imprimir los K TTs
+			cont_lineas = 0;
+		}
 
-  char cadena_aux[cad_mas_larga + 1]; //memoria estatica
+		bytes_leidos = getline(&cadena, &num_bytes, archivo);
+		if (cadena[bytes_leidos - 1] == '\n') cadena[--bytes_leidos] = '\0'; //Piso el \n
+		char** strv = split(cadena, ','); //Creo un arreglo que tenga los tweets de esas lineas
 
-  size_t pos_vector = 0, pos_cad_aux = 0;
-  for (size_t i = 0; i < long_str; ++i){
-    if (str[i] == ' ' && i + 1 != long_str) continue; //Asi no me copia los espacios
-    if(str[i] == sep || i + 1 == long_str){
-      cadena_aux[pos_cad_aux] = '\0'; 
-      str_vector[pos_vector++] = strdup(cadena_aux);
-      pos_cad_aux = 0;  
-      continue;
-    }
-    cadena_aux[pos_cad_aux++] = str[i];
-  }
-  str_vector[pos_vector] = NULL;
-  return str_vector;
+		if (!strv){
+			imprimir_error("Error: Falla durante la ejecucion");
+			return; //El min_sketch pudo quedarse con cosas, chequear que se destruya bien
+		}
+		size_t pos_aux = 1; //Porque la posicion 0 es el usuario
+		while (strv[pos_aux] != NULL){
+			min_sketch_update(min_sketch, strv[pos_aux++], k); //Cuando creas a tupla haces una copia del tweet
+		}
+		free_strv(strv); 
+		cont_lineas++; //Esto podrias hacer arriba cuando compares lineas
+	}
+
 }
 
-void free_strv(char *strv[]){
-  size_t contador = 0;
-  while(strv[contador] != NULL) free(strv[contador++]); //libero las cadenas
-  free(strv); //libero el vector
-}
 

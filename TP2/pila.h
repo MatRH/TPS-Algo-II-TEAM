@@ -19,9 +19,9 @@ typedef struct pila pila_t;
  *                    PRIMITIVAS DE LA PILA
  * *****************************************************************/
 
-// Crea una pila.
+// Crea una pila con capacidad k.
 // Post: devuelve una nueva pila vacía.
-pila_t* pila_crear(void);
+pila_t* pila_crear(int k);
 
 // Destruye la pila.
 // Pre: la pila fue creada.
