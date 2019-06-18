@@ -49,7 +49,8 @@ less de Unix para leerlo, ya que no lo carga en memoria: less tweets.txt.
 #include "strutil.h"
 #include "lista.h"
 #include "hash.h"
-#include "tuplas.h"
+#include "tupla.h"
+#define MAX_LEN 150
 
 typedef struct registro{
   char* usuario;
@@ -58,7 +59,7 @@ typedef struct registro{
 
 hash_t procesar_usuarios(FILE* input);
 void analizar_datos(hasht_t usuarios_procesados);
-void imprimir_resultado(tuplas);//función que imprime por pantalla los datos obtenidos
+void imprimir_resultado(tuplas_t** tuplas);//función que imprime por pantalla los datos obtenidos
 
 int main(int argc, char* argv[]){
     if(argc != 2){
@@ -116,7 +117,9 @@ void analizar_datos(hasht_t usuarios_procesados){
 
   while(!hash_iter_al_final(iter)){//obtengo los usuarios y su frecuencia de tweets
     char* usuario = hash_iter_ver_actual(iter);
-    size_t cantidad = hash_cantidad(hash_obtener(usuarios_procesados, usuario));
+    hash_t tweets = hash_obtener(usuarios_procesados, usuario);
+    size_t cantidad = hash_cantidad(tweets);
+    hash_destruir(tweets);
     tupla_t* tupla = tupla_crear(usuario, cantidad);
     tupla_t** tuplas = malloc(sizeof(void*)*(len_tuplas);
     tuplas[hash_cantidad(usuarios_procesados)] = NULL; //para marcar el final del arreglo
@@ -126,7 +129,7 @@ void analizar_datos(hasht_t usuarios_procesados){
   }
   hash_iter_destruir(iter);
 
-  ordernar_tuplas(tuplas);//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
+  ordernar_tuplas(tuplas, len_tuplas);//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
   imprimir_resultado(tuplas, len_tuplas);//función que imprime por pantalla los datos obtenidos
 
   hash_destruir(usuarios_procesados);
@@ -142,8 +145,8 @@ void imprimimr_resultado(tupla_t** tuplas, size_t len){
 
   while(tuplas[pos]){//mientras que tenga usuarios para procesar
     tupla_actual = tuplas[pos];
-    cant_actual = segundo_elemento(tupla_actual);
-    usuario_actual = primer_elemento(tupla_actual);
+    cant_actual = tupla_frec(tupla_actual);
+    usuario_actual = tupla_tag(tupla_actual);
 
     if(cant_actual > cant_anterior && usuarios[0]){
       char* str = join(usuarios, ', ');//cadena para mostrar por pantalla de todos los usuarios
