@@ -11,15 +11,19 @@ Corrector: Secchi, Ana
 #include "tupla.h"
 
 struct tupla{  //tupla = (frecuencia, tag)
-	char* tag;  
+	char* tag;
 	size_t frec;
 };
 
 tupla_t* tupla_crear(char* clave, size_t frec){
+	/*
 	tupla_t* tupla = malloc(sizeof(tupla_t));
 	if (!tupla) return NULL;
 
 	tupla->tag = strdup(clave);
+	*/
+	tupla->tag = clave; //si creas copias de las claves para las tuplas tenes que mantener todas las tuplas vivas hasta que termines de usar los datos
+	//conviene, para mi, que no haga copias y en todo caso pasarle copias y liberarlas por fuera de las tuplas
 	tupla->frec = frec;
 	return tupla;
 }
@@ -39,6 +43,47 @@ char* tupla_tag(tupla_t* tupla){
 //tupla_sort(){}
 
 void tupla_destruir(tupla_t* tupla){
-	free(tupla->tag);
+	//free(tupla->tag); ver crear
 	free(tupla);
+}
+
+/*ORDENA IN PLACE un arreglo de tuplas, primero segun su frecuencia y luego
+alfabeticamente*/
+void ordernar_tuplas(tuplas_t** tuplas, size_t len){
+	size_t max_frec = 0;.
+	tupla_t tupla;
+	size_t capacidad = len/2;
+	size_t* usuarios_por_frecuencia = malloc(sizeof(size_t)*capacidad);
+	bool todo_ok = true;
+	for (int i;todo_ok && i < len, i++){//recorro una vez para ver el rango de los datos
+		tupla = tuplas[i];
+		size_t frec = tupla_frec(tupla);
+		if(frec > max_frec) max_frec = frec;
+		if(frec > capacidad){
+			capacidad = capacidad*2;
+			realloc(usuarios_por_frecuencia, capacidad);
+			if(!usuarios_por_frecuencia) todo_ok = false;
+		}
+		usuarios_por_frecuencia[frec]++;
+	}
+	if(!todo_ok return);
+	void*** frecuencias = malloc(sizeof(void*)*max_frec);
+	for (int n; n <= max_frec; n++){//creo los baldes
+		if (!frecuencias[n]){
+			tuplas_t** balde = malloc(sizeof(void*)*usuarios_por_frecuencia[n]);
+			frecuencias[n] = balde;
+		}
+	}
+	for(int i; i<len; i++){ //ordeno las tuplas por frecuencias en sus baldes
+		tupla = tuplas[i];
+		frec = tupla_frec(tupla);
+		size_t n = 0;
+		while(frecuencias[frec][n]){
+			n++;
+		}
+		frecuencias[frec][n] = tupla;
+	}
+	for (int n; n<= max_frec; n++){
+
+	}
 }
