@@ -19,6 +19,7 @@ Corrector: Secchi, Ana
 void imprimir_error(char* error_sms);
 bool numeros_validos(const char* cad1, const char* cad2);
 void leer_tweets(min_sketch_t* min_sketch, FILE* archivo, int n, int k);
+void imprimir_tts(min_sketch_t* min_sketch, size_t indice, int k);
 
 //Programa principal
 int main(int argc, char const *argv[]){ //0 si anda bien 1 en caso contrario
@@ -75,17 +76,13 @@ void leer_tweets(min_sketch_t* min_sketch, FILE* archivo, int n, int k){
 	long int bytes_leidos;
 	//Indice es para dar la salida pedida "--- indice"
 
-	while (!feof(archivo)){ //Mietras no llegue al final del archivo leo lineas
+	while ((bytes_leidos = getline(&cadena, &num_bytes, archivo)) != -1){ //Mietras no llegue al final del archivo leo lineas
 		if (cont_lineas == n){ //Imprimo los TTs
-			fprintf(stdout, "--- %ld", indice++);
-			min_sketch_print(min_sketch, k); //Se encarga de imprimir los K TTs
+			imprimir_tts(min_sketch, indice++, k);
 			cont_lineas = 0;
 		}
-
-		bytes_leidos = getline(&cadena, &num_bytes, archivo);
 		if (cadena[bytes_leidos - 1] == '\n') cadena[--bytes_leidos] = '\0'; //Piso el \n
 		char** strv = split(cadena, ','); //Creo un arreglo que tenga los tweets de esas lineas
-
 		if (!strv){
 			imprimir_error("Error: Falla durante la ejecucion");
 			return; //El min_sketch pudo quedarse con cosas, chequear que se destruya bien
@@ -97,7 +94,16 @@ void leer_tweets(min_sketch_t* min_sketch, FILE* archivo, int n, int k){
 		free_strv(strv); 
 		cont_lineas++; //Esto podrias hacer arriba cuando compares lineas
 	}
+	if (cont_lineas != 0){ //Significa que termine de leer pero no imprimi porque se termino el archivo antes
+		imprimir_tts(min_sketch, indice, k);
+	}
 
+}
+
+void imprimir_tts(min_sketch_t* min_sketch, size_t indice, int k){
+	/*Imprime los TTs*/
+	fprintf(stdout, "--- %ld", indice);
+	min_sketch_print(min_sketch, k); //Se encarga de imprimir los K TTs
 }
 
 
