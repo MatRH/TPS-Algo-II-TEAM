@@ -96,22 +96,18 @@ bool min_sketch_update(min_sketch_t* min_sketch, char* tweet, int k){
 }
 
 void min_sketch_print(min_sketch_t* min_sketch, int k){
-	//Primero invertis todo lo que tenes en el heap
+	//Primero invertis todo lo que tenes en el heap, para eso usamos una pila
 	pila_t* pila = pila_crear(k);
-	//Segundo, desencolamos hasta que quede vacio
+	//Desencolamos hasta que quede vacio
 	heap_t* heap = min_sketch->heap;
 	while (!heap_esta_vacio(heap)) pila_apilar(pila, heap_desencolar(heap));
 
-	//Tercero, desapilamos e imprimimos
-	size_t frec_aux = 0;
+	//Segundo, desapilamos e imprimimos
 	while (!pila_esta_vacia(pila)){
 		tupla_t* tupla = pila_desapilar(pila);
 		size_t frec = tupla_frec(tupla);
 		char* tweet = tupla_tag(tupla);
-
-		(frec_aux != frec) ? fprintf(stdout, "\n%ld ", frec) : fprintf(stdout, "%s", ", "); //No se que formato debe tener
-		frec_aux = frec;
-		fprintf(stdout, "%s", tweet);
+		fprintf(stdout, "\n%ld %s", frec, tweet);
 		tupla_destruir(tupla);
 	}
 	fprintf(stdout, "\n");
@@ -153,7 +149,7 @@ int exit_cmp(void* a, void* b){
 	size_t frec2 = tupla_frec(tupla2);
 	char* cad1 = tupla_tag(tupla1);
 	char* cad2 = tupla_tag(tupla2);
-	if (frec1 < frec2 || (frec1 == frec2 && strcmp(cad1, cad2) < 0)) return -1;
+	if (frec1 < frec2 || (frec1 == frec2 && strcmp(cad1, cad2) > 0)) return -1;
 	return 1;
 
 }

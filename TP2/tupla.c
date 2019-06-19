@@ -16,14 +16,11 @@ struct tupla{  //tupla = (frecuencia, tag)
 };
 
 tupla_t* tupla_crear(char* clave, size_t frec){
-	/*
 	tupla_t* tupla = malloc(sizeof(tupla_t));
 	if (!tupla) return NULL;
 
 	tupla->tag = strdup(clave);
-	*/
-	tupla->tag = clave; //si creas copias de las claves para las tuplas tenes que mantener todas las tuplas vivas hasta que termines de usar los datos
-	//conviene, para mi, que no haga copias y en todo caso pasarle copias y liberarlas por fuera de las tuplas
+	tupla->tag = clave;
 	tupla->frec = frec;
 	return tupla;
 }
@@ -43,7 +40,7 @@ char* tupla_tag(tupla_t* tupla){
 //tupla_sort(){}
 
 void tupla_destruir(tupla_t* tupla){
-	//free(tupla->tag); ver crear
+	free(tupla->tag); ver crear
 	free(tupla);
 }
 
