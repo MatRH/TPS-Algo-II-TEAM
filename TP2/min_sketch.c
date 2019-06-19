@@ -82,7 +82,10 @@ bool min_sketch_update(min_sketch_t* min_sketch, char* tweet, int k){
 			if (exit_cmp(tope_heap, tupla) < 0){ //Sale el tweet con menor frecuencia
 				tupla_destruir(heap_desencolar(heap)); //Encolo la nueva tupla mas abajo
 			}
-			else return true; 
+			else{
+				tupla_destruir(tupla); //Porque no la encole
+				return true;
+			} 
 		}
 		//Encolo la tupla
 		if (!heap_encolar(heap, tupla)){ //Fallo encolar

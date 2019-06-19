@@ -94,6 +94,7 @@ void leer_tweets(min_sketch_t* min_sketch, FILE* archivo, int n, int k){
 		free_strv(strv);
 		cont_lineas++;
 	}
+	free(cadena);
 	if (cont_lineas != 0){ //Significa que termine de leer pero no imprimi porque se termino el archivo antes
 		imprimir_tts(min_sketch, indice, k);
 	}
