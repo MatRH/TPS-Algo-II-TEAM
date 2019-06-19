@@ -27,10 +27,8 @@ struct min_sketch{
 };
 //Declaraciones funciones de hash
 size_t hash_djb2(char *str);
-//size_t hash_func(char* key);
 size_t sdbm(char* str);
-
-
+size_t hashCode(char* key)
 
 //Declaraciones funciones auxiliares
 void destruir_tupla_wrapper(void* elemento);
@@ -60,7 +58,7 @@ min_sketch_t* min_sketch_crear(int tamanio){
 	min_sketch->heap = heap;
 	min_sketch->func_hash_1 = &hash_djb2;
 	min_sketch->func_hash_2 = &sdbm;
-	min_sketch->func_hash_3 = &hash_djb2;
+	min_sketch->func_hash_3 = &hashCode;
 	min_sketch->arr1 = arr1;
 	min_sketch->arr2 = arr2;
 	min_sketch->arr3 = arr3;
@@ -207,22 +205,6 @@ size_t hash_djb2(char *str){
 		return hash;
 }
 
-/*public override int GetHashCode(){
-int hashVal = 0;
-for (int i = 0; i < str.Length; i++)
-hashVal = 26 * hashVal + str[i];
-return hashVal;}*/
-
-/*size_t hash_func(char* key) {
-	long hashVal = 0;
-	while (*key != '\0') {
-		hashVal = (hashVal << 4) + *(key++);
-		long g = hashVal & 0xF0000000L;
-		if (g != 0) hashVal ^= g >> 24;
-		hashVal &= ~g;
-	}
-	return (size_t) hashVal;
-}	*/
 size_t sdbm(char* str){
     unsigned long hash = 0;
     int c;
@@ -233,5 +215,17 @@ size_t sdbm(char* str){
     return (size_t) hash;
 }	
 
-
+size_t hashCode(char* key){ //Jenkins
+    size_t  hash, i;
+    size_t lenght = strlen(key);
+    for(hash = i = 0; i < lenght; ++i){
+        hash += (size_t) key[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+    return hash;
+}
 

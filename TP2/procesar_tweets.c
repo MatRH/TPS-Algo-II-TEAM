@@ -91,8 +91,8 @@ void leer_tweets(min_sketch_t* min_sketch, FILE* archivo, int n, int k){
 		while (strv[pos_aux] != NULL){
 			min_sketch_update(min_sketch, strv[pos_aux++], k); //Cuando creas a tupla haces una copia del tweet
 		}
-		free_strv(strv); 
-		cont_lineas++; //Esto podrias hacer arriba cuando compares lineas
+		free_strv(strv);
+		cont_lineas++;
 	}
 	if (cont_lineas != 0){ //Significa que termine de leer pero no imprimi porque se termino el archivo antes
 		imprimir_tts(min_sketch, indice, k);
