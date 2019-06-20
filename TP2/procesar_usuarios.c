@@ -59,7 +59,7 @@ struct registro{
 
 hash_t* procesar_usuarios(FILE* input);
 void analizar_datos(hash_t* usuarios_procesados);
-void imprimimr_resultado(tupla_t** tuplas, size_t len);//función que imprime por pantalla los datos obtenidos
+void imprimir_resultado(tupla_t** tuplas, size_t len);//función que imprime por pantalla los datos obtenidos
 
 int main(int argc, char* argv[]){
     if(argc != 2){
@@ -115,14 +115,16 @@ void analizar_datos(hash_t* usuarios_procesados){
   hash_iter_t* iter = hash_iter_crear(usuarios_procesados);
   size_t num_usuario = 0;
   size_t len_tuplas = hash_cantidad(usuarios_procesados)+1;
+  tupla_t** tuplas;
+  tupla_t* tupla;
 
   while(!hash_iter_al_final(iter)){//obtengo los usuarios y su frecuencia de tweets
     const char* usuario = hash_iter_ver_actual(iter);
     hash_t* tweets = hash_obtener(usuarios_procesados, usuario);
     size_t cantidad = hash_cantidad(tweets);
     hash_destruir(tweets);
-    tupla_t* tupla = tupla_crear(usuario, cantidad);
-    tupla_t** tuplas = malloc(sizeof(void*)*(len_tuplas);
+    tupla = tupla_crear(usuario, cantidad);
+    tuplas = malloc((sizeof(void*))*(len_tuplas));
     tuplas[hash_cantidad(usuarios_procesados)] = NULL; //para marcar el final del arreglo
     tuplas[num_usuario] = tupla;
     num_usuario++;
@@ -136,9 +138,9 @@ void analizar_datos(hash_t* usuarios_procesados){
   hash_destruir(usuarios_procesados);
 }
 
-void imprimimr_resultado(tupla_t** tuplas, size_t len){
+void imprimir_resultado(tupla_t** tuplas, size_t len){
   size_t pos = 0;//posicion sobre el arreglo de tuplas
-  size_t cant_actual;//cantidad de usuarios guardados en usuarios
+  size_t cant_actual = 0;//cantidad de usuarios guardados en usuarios
   size_t cant_anterior = 0; //cantidad de tweets de los usuarios guardados
   tupla_t* tupla_actual;//pareja usuario, cantidad tweets que estoy evaluando
   size_t cant_usuarios = 0;//cantidad de usuarios guardados en el arreglo de usuarios

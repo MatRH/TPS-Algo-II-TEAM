@@ -20,7 +20,6 @@ tupla_t* tupla_crear(const char* clave, size_t frec){
 	if (!tupla) return NULL;
 
 	tupla->tag = strdup(clave);
-	tupla->tag = clave;
 	tupla->frec = frec;
 	return tupla;
 }
