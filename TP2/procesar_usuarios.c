@@ -84,13 +84,13 @@ int main(int argc, char* argv[]){
 
 hash_t* procesar_usuarios(FILE* input){
   char linea[MAX_LEN];
-  fgets(linea, MAX_LEN, input);
+  //fgets(linea, MAX_LEN, input);
   hash_t* usuarios = hash_crear(hash_destruir_w); //usuarios va a ser un hash de hashes, donde cada usuario es una clave y un hash con los tweets el valor
   char* usuario;
   char* tweet;
   bool todo_ok = true;
   char** strv;
-  while(linea && todo_ok){
+  while(fgets(linea, MAX_LEN, input) && todo_ok){
      strv = split(linea, ',');
      usuario = strv[0];
 
@@ -107,7 +107,7 @@ hash_t* procesar_usuarios(FILE* input){
        todo_ok = hash_guardar(hash_obtener(usuarios, usuario), tweet, NULL);
        i++;
      }
-  fgets(linea, MAX_LEN, input);//tomo la siguiente linea del archivo
+  //fgets(linea, MAX_LEN, input);//tomo la siguiente linea del archivo
   }
   if (todo_ok) return usuarios;
   free_strv(strv);
