@@ -106,5 +106,3 @@ void imprimir_tts(min_sketch_t* min_sketch, size_t indice, int k){
 	fprintf(stdout, "--- %ld", indice);
 	min_sketch_print(min_sketch, k); //Se encarga de imprimir los K TTs
 }
-
-

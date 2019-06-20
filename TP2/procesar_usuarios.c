@@ -60,6 +60,9 @@ struct registro{
 hash_t* procesar_usuarios(FILE* input);
 void analizar_datos(hash_t* usuarios_procesados);
 void imprimir_resultado(tupla_t** tuplas, size_t len);//función que imprime por pantalla los datos obtenidos
+void hash_destruir_w(void *hash){
+	hash_destruir(hash);
+}
 
 int main(int argc, char* argv[]){
     if(argc != 2){
@@ -82,7 +85,7 @@ int main(int argc, char* argv[]){
 hash_t* procesar_usuarios(FILE* input){
   char linea[MAX_LEN];
   fgets(linea, MAX_LEN, input);
-  hash_t* usuarios = hash_crear(hash_destruir); //usuarios va a ser un hash de hashes, donde cada usuario es una clave y un hash con los tweets el valor
+  hash_t* usuarios = hash_crear(hash_destruir_w); //usuarios va a ser un hash de hashes, donde cada usuario es una clave y un hash con los tweets el valor
   char* usuario;
   char* tweet;
   bool todo_ok = true;
