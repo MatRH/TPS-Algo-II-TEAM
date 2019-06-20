@@ -67,8 +67,8 @@ int main(int argc, char* argv[]){
       return 0;
     }
     FILE* input;
-    char* input_file = argv[1];
-    input = fopen(input_file, 'r');
+    const char* input_file = argv[1];
+    input = fopen(input_file, "r");
     if(!input){
       fprintf( stderr, "Error: archivo fuente inaccesible");
       return 0;
@@ -79,20 +79,20 @@ int main(int argc, char* argv[]){
     return 0;
   }
 
-hash_t procesar_usuarios(FILE* input){
+hash_t* procesar_usuarios(FILE* input){
   char linea[MAX_LEN];
-  linea = fgets(linea, MAX_LEN, input);
-  hash_t usuarios = hash_crear(hash_destruir); //usuarios va a ser un hash de hashes, donde cada usuario es una clave y un hash con los tweets el valor
+  fgets(linea, MAX_LEN, input);
+  hash_t* usuarios = hash_crear(hash_destruir); //usuarios va a ser un hash de hashes, donde cada usuario es una clave y un hash con los tweets el valor
   char* usuario;
   char* tweet;
   bool todo_ok = true;
-
+  char** strv;
   while(linea && todo_ok){
-     char** strv = split(linea, ',');
+     strv = split(linea, ',');
      usuario = strv[0];
 
      if(!hash_pertenece(usuarios, usuario)){
-       hash_t tweets = hash_crear(NULL);
+       hash_t* tweets = hash_crear(NULL);
        todo_ok = hash_guardar(usuarios, usuario, tweets);//guardo el usuario y creo el hash para sus tweets
      }
 
@@ -101,10 +101,10 @@ hash_t procesar_usuarios(FILE* input){
      size_t i = 1;
      while(strv[i]){//guardo los tweets del usuario
        tweet = strv[i];
-       todo_ok = hash_guardar(hash_obtener(usuarios, usuario), tweet);
+       todo_ok = hash_guardar(hash_obtener(usuarios, usuario), tweet, NULL);
        i++;
      }
-  linea = fgets(linea, MAX_LEN, input);//tomo la siguiente linea del archivo
+  fgets(linea, MAX_LEN, input);//tomo la siguiente linea del archivo
   }
   if (todo_ok) return usuarios;
   free_strv(strv);
@@ -112,13 +112,13 @@ hash_t procesar_usuarios(FILE* input){
 }
 
 void analizar_datos(hash_t* usuarios_procesados){
-  hash_iter_t iter = hash_iter_crear(usuarios_procesados);
+  hash_iter_t* iter = hash_iter_crear(usuarios_procesados);
   size_t num_usuario = 0;
-  size_t len_tuplas = hash_cantidad(usuarios_procesados)+1);
+  size_t len_tuplas = hash_cantidad(usuarios_procesados)+1;
 
   while(!hash_iter_al_final(iter)){//obtengo los usuarios y su frecuencia de tweets
-    char* usuario = hash_iter_ver_actual(iter);
-    hash_t tweets = hash_obtener(usuarios_procesados, usuario);
+    const char* usuario = hash_iter_ver_actual(iter);
+    hash_t* tweets = hash_obtener(usuarios_procesados, usuario);
     size_t cantidad = hash_cantidad(tweets);
     hash_destruir(tweets);
     tupla_t* tupla = tupla_crear(usuario, cantidad);

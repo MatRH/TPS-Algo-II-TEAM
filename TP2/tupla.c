@@ -15,7 +15,7 @@ struct tupla{  //tupla = (frecuencia, tag)
 	size_t frec;
 };
 
-tupla_t* tupla_crear(char* clave, size_t frec){
+tupla_t* tupla_crear(const char* clave, size_t frec){
 	tupla_t* tupla = malloc(sizeof(tupla_t));
 	if (!tupla) return NULL;
 
