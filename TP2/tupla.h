@@ -5,7 +5,7 @@ Numero de grupo: 23
 Corrector: Secchi, Ana
 */
 #ifndef TUPLA_H
-#define TUPLA_H 
+#define TUPLA_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -15,7 +15,7 @@ typedef struct tupla tupla_t;
 /*Crea la estructura tupla
  *En caso de error devuelve NULL
  */
-tupla_t* tupla_crear(char* clave, size_t frec);
+tupla_t* tupla_crear(const char* clave, size_t frec);
 
 /*Devuelve la frecuencia del tag
  *Pre: la estructura tupla fue inicializada
