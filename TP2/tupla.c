@@ -40,25 +40,26 @@ char* tupla_tag(tupla_t* tupla){
 //tupla_sort(){}
 
 void tupla_destruir(tupla_t* tupla){
-	free(tupla->tag); ver crear
+	free(tupla->tag);
 	free(tupla);
 }
 
 /*ORDENA IN PLACE un arreglo de tuplas, primero segun su frecuencia y luego
-alfabeticamente*/
-void ordernar_tuplas(tuplas_t** tuplas, size_t len){
+alfabeticamente
+void ordernar_tuplas(tupla_t** tuplas, size_t len){
 	size_t max_frec = 0;.
 	tupla_t tupla;
 	size_t capacidad = len/2;
 	size_t* usuarios_por_frecuencia = malloc(sizeof(size_t)*capacidad);
 	bool todo_ok = true;
+	size_t frec;
 	for (int i;todo_ok && i < len, i++){//recorro una vez para ver el rango de los datos
 		tupla = tuplas[i];
 		size_t frec = tupla_frec(tupla);
 		if(frec > max_frec) max_frec = frec;
 		if(frec > capacidad){
 			capacidad = capacidad*2;
-			realloc(usuarios_por_frecuencia, capacidad);
+			usuarios_por_frecuencia = realloc(usuarios_por_frecuencia, capacidad);
 			if(!usuarios_por_frecuencia) todo_ok = false;
 		}
 		usuarios_por_frecuencia[frec]++;
@@ -83,4 +84,4 @@ void ordernar_tuplas(tuplas_t** tuplas, size_t len){
 	for (int n; n<= max_frec; n++){
 
 	}
-}
+}*/

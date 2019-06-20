@@ -52,14 +52,14 @@ less de Unix para leerlo, ya que no lo carga en memoria: less tweets.txt.
 #include "tupla.h"
 #define MAX_LEN 150
 
-typedef struct registro{
+struct registro{
   char* usuario;
   lista_t* tweets;
-}
+};
 
-hash_t procesar_usuarios(FILE* input);
-void analizar_datos(hasht_t usuarios_procesados);
-void imprimir_resultado(tuplas_t** tuplas);//función que imprime por pantalla los datos obtenidos
+hash_t* procesar_usuarios(FILE* input);
+void analizar_datos(hash_t* usuarios_procesados);
+void imprimimr_resultado(tupla_t** tuplas, size_t len);//función que imprime por pantalla los datos obtenidos
 
 int main(int argc, char* argv[]){
     if(argc != 2){
@@ -67,12 +67,13 @@ int main(int argc, char* argv[]){
       return 0;
     }
     FILE* input;
-    input = argv[1];
+    char* input_file = argv[1];
+    input = fopen(input_file, 'r');
     if(!input){
       fprintf( stderr, "Error: archivo fuente inaccesible");
       return 0;
     }
-    hash_t usuarios_procesados = procesar_usuarios(input);
+    hash_t* usuarios_procesados = procesar_usuarios(input);
     if(usuarios_procesados) analizar_datos(usuarios_procesados);
     else fprintf( stderr, "Error: No se pudieron procesar los usuarios");
     return 0;
@@ -110,7 +111,7 @@ hash_t procesar_usuarios(FILE* input){
   return NULL;
 }
 
-void analizar_datos(hasht_t usuarios_procesados){
+void analizar_datos(hash_t* usuarios_procesados){
   hash_iter_t iter = hash_iter_crear(usuarios_procesados);
   size_t num_usuario = 0;
   size_t len_tuplas = hash_cantidad(usuarios_procesados)+1);
@@ -129,7 +130,7 @@ void analizar_datos(hasht_t usuarios_procesados){
   }
   hash_iter_destruir(iter);
 
-  ordernar_tuplas(tuplas, len_tuplas);//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
+  //ordernar_tuplas(tuplas, len_tuplas);//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
   imprimir_resultado(tuplas, len_tuplas);//función que imprime por pantalla los datos obtenidos
 
   hash_destruir(usuarios_procesados);
@@ -139,17 +140,17 @@ void imprimimr_resultado(tupla_t** tuplas, size_t len){
   size_t pos = 0;//posicion sobre el arreglo de tuplas
   size_t cant_actual;//cantidad de usuarios guardados en usuarios
   size_t cant_anterior = 0; //cantidad de tweets de los usuarios guardados
-  tupla_t tupla_actual;//pareja usuario, cantidad tweets que estoy evaluando
+  tupla_t* tupla_actual;//pareja usuario, cantidad tweets que estoy evaluando
   size_t cant_usuarios = 0;//cantidad de usuarios guardados en el arreglo de usuarios
   char** usuarios = malloc(sizeof(char*)*len-1);//arreglo de usuarios
 
   while(tuplas[pos]){//mientras que tenga usuarios para procesar
     tupla_actual = tuplas[pos];
-    cant_actual = tupla_frec(tupla_actual);
-    usuario_actual = tupla_tag(tupla_actual);
+    size_t cant_actual = tupla_frec(tupla_actual);
+    char* usuario_actual = tupla_tag(tupla_actual);
 
     if(cant_actual > cant_anterior && usuarios[0]){
-      char* str = join(usuarios, ', ');//cadena para mostrar por pantalla de todos los usuarios
+      char* str = join(usuarios, ',');//cadena para mostrar por pantalla de todos los usuarios
       printf("%ld: %s\n", cant_actual, str); //imprimo los usuarios anteriores
 
       for(int i; i <= cant_usuarios; i++){ //borro los usuarios anteriores
@@ -159,13 +160,13 @@ void imprimimr_resultado(tupla_t** tuplas, size_t len){
       free(str); //libero str
     }
 
-    usuarios[cant_usuarios] = usuario; //guardo el usuario actual
+    usuarios[cant_usuarios] = usuario_actual; //guardo el usuario actual
     cant_usuarios++;
     cant_anterior = cant_actual;//actualizo la cantidad de tweets de los usuarios que estoy almacenando
   }
 
   if(usuarios[0]){//si me quedan usuarios por imprimir
-    printf("%ld: %s\n", cant_actual, join(usuarios, ', ')); //imprimo los usuarios anteriores
+    printf("%ld: %s\n", cant_actual, join(usuarios, ',')); //imprimo los usuarios anteriores
   }
 
   for(pos = 0; tuplas[pos]; pos++){//destruyo las tuplas
