@@ -28,7 +28,7 @@ struct min_sketch{
 //Declaraciones funciones de hash
 size_t hash_djb2(char *str);
 size_t sdbm(char* str);
-size_t hashCode(char* key)
+size_t hashCode(char* key);
 
 //Declaraciones funciones auxiliares
 void destruir_tupla_wrapper(void* elemento);

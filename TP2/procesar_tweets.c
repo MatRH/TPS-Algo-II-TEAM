@@ -41,7 +41,7 @@ int main(int argc, char const *argv[]){ //0 si anda bien 1 en caso contrario
 	int k = atoi(argv[2]);
 
 	//Creo el min_sketch
-	min_sketch_t* min_sketch = min_sketch_crear(k);
+	min_sketch_t* min_sketch = min_sketch_crear(n);
 	if (!min_sketch){
 		imprimir_error("Error: Falla durante la ejecucion");
 		return 1;
