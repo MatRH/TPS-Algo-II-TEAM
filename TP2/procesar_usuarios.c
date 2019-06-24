@@ -43,6 +43,7 @@ Atención: tener en cuenta que el archivo provisto por el curso, descomprimido,
 460 Mb, y cuenta con más 19 millones de líneas. Se recomienda utilizar el comando
 less de Unix para leerlo, ya que no lo carga en memoria: less tweets.txt.
 */
+#define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -106,11 +107,11 @@ hash_t* procesar_usuarios(FILE* input){
        tweet = strv[i];
        todo_ok = hash_guardar(hash_obtener(usuarios, usuario), tweet, NULL);
        i++;
+     free_strv(strv);
      }
   //fgets(linea, MAX_LEN, input);//tomo la siguiente linea del archivo
   }
   if (todo_ok) return usuarios;
-  free_strv(strv);
   return NULL;
 }
 
@@ -118,16 +119,18 @@ void analizar_datos(hash_t* usuarios_procesados){
   hash_iter_t* iter = hash_iter_crear(usuarios_procesados);
   size_t num_usuario = 0;
   size_t len_tuplas = hash_cantidad(usuarios_procesados)+1;
-  tupla_t** tuplas;
+  tupla_t** tuplas = malloc((sizeof(void*))*(len_tuplas));
+  if (!tuplas) return;
   tupla_t* tupla;
 
   while(!hash_iter_al_final(iter)){//obtengo los usuarios y su frecuencia de tweets
     const char* usuario = hash_iter_ver_actual(iter);
     hash_t* tweets = hash_obtener(usuarios_procesados, usuario);
     size_t cantidad = hash_cantidad(tweets);
-    hash_destruir(tweets);
+    //hash_destruir(tweets);
+    printf("Usuario: %s\n", usuario ); //DEBUG
+    printf("Cantidad: %ld\n", cantidad ); //DEBUG
     tupla = tupla_crear(usuario, cantidad);
-    tuplas = malloc((sizeof(void*))*(len_tuplas));
     tuplas[hash_cantidad(usuarios_procesados)] = NULL; //para marcar el final del arreglo
     tuplas[num_usuario] = tupla;
     num_usuario++;
@@ -138,36 +141,51 @@ void analizar_datos(hash_t* usuarios_procesados){
   //ordernar_tuplas(tuplas, len_tuplas);//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
   imprimir_resultado(tuplas, len_tuplas);//función que imprime por pantalla los datos obtenidos
 
+  printf("Destruyo el hash de USUARIOS\n" ); //DEBUG
   hash_destruir(usuarios_procesados);
 }
 
 void imprimir_resultado(tupla_t** tuplas, size_t len){
+  if (!tuplas || !tuplas[0]) return;
   size_t pos = 0;//posicion sobre el arreglo de tuplas
-  size_t cant_actual = 0;//cantidad de usuarios guardados en usuarios
-  size_t cant_anterior = 0; //cantidad de tweets de los usuarios guardados
+  size_t cant_actual;//cantidad de tweets del usuario actual
+  size_t cant_anterior = 0; //cantidad de tweets del usuario anterior
   tupla_t* tupla_actual;//pareja usuario, cantidad tweets que estoy evaluando
   size_t cant_usuarios = 0;//cantidad de usuarios guardados en el arreglo de usuarios
-  char** usuarios = malloc(sizeof(char*)*len-1);//arreglo de usuarios
+  char** usuarios = malloc(sizeof(char*)*len);//arreglo de usuarios
+  if (!usuarios) return;
+  tupla_actual = tuplas[pos];
+  cant_actual = tupla_frec(tupla_actual);
+  char* usuario_actual = tupla_tag(tupla_actual);
+  printf("GUARDO EL USUARIO: %s\n", usuario_actual); //DEBUG
+  usuarios[cant_usuarios] = usuario_actual; //guardo el usuario actual
+  cant_usuarios++;
+  cant_anterior = cant_actual;//actualizo la cantidad de tweets de los usuarios que estoy almacenando
 
-  while(tuplas[pos]){//mientras que tenga usuarios para procesar
+  while(tuplas[pos]){ //mientras que tenga usuarios para procesar
+    printf("Cantidad de usuarios: %ld\n",cant_usuarios ); //DEBUG
     tupla_actual = tuplas[pos];
-    size_t cant_actual = tupla_frec(tupla_actual);
-    char* usuario_actual = tupla_tag(tupla_actual);
+    cant_actual = tupla_frec(tupla_actual);
+    usuario_actual = tupla_tag(tupla_actual);
 
-    if(cant_actual > cant_anterior && usuarios[0]){
+    if(cant_actual != cant_anterior && usuarios[0]){
+      printf("IMPRIMO USUARIOS\n"); //DEBUG
+      usuarios[cant_usuarios] = NULL;
       char* str = join(usuarios, ',');//cadena para mostrar por pantalla de todos los usuarios
-      printf("%ld: %s\n", cant_actual, str); //imprimo los usuarios anteriores
-
-      for(int i; i <= cant_usuarios; i++){ //borro los usuarios anteriores
+      printf("%ld: %s\n", cant_anterior, str); //imprimo los usuarios anteriores
+      printf("LIMPIO USUARIOS\n"); //DEBUG
+      for(int i = 0; i <= cant_usuarios; i++){ //borro los usuarios anteriores
         usuarios[i] = NULL;
       }
       cant_usuarios = 0; //reinicio la cantidad de usuarios guardados
+      printf("Cantidad de usuarios: %ld\n",cant_usuarios ); //DEBUG
       free(str); //libero str
     }
-
+    printf("GUARDO EL USUARIO: %s\n", usuario_actual); //DEBUG
     usuarios[cant_usuarios] = usuario_actual; //guardo el usuario actual
     cant_usuarios++;
     cant_anterior = cant_actual;//actualizo la cantidad de tweets de los usuarios que estoy almacenando
+    pos++;
   }
 
   if(usuarios[0]){//si me quedan usuarios por imprimir
