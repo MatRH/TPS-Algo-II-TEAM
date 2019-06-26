@@ -135,7 +135,7 @@ void analizar_datos(hash_t* usuarios_procesados){
   }
   hash_iter_destruir(iter);
 
-  //ordernar_tuplas(tuplas, len_tuplas);//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
+  tuplas = ordernar_tuplas(tuplas, len_tuplas);//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
   imprimir_resultado(tuplas, len_tuplas);//función que imprime por pantalla los datos obtenidos
   hash_destruir(usuarios_procesados);
 }

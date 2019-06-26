@@ -55,12 +55,12 @@ alfabeticamente*/
 según su frecuencia						O(len)
 
 */
-tuplas_t** ordenar_abc(tuplas_t** tuplas,size_t len);
+tupla_t** ordenar_abc(tupla_t** tuplas,size_t len);
 
-tuplas_t** ordernar_tuplas(tupla_t** tuplas, size_t len){
+tupla_t** ordernar_tuplas(tupla_t** tuplas, size_t len){
 	size_t max_frec = 0;
 	size_t min_frec = tupla_frec(tuplas[0]);
-	tupla_t tupla;
+	tupla_t* tupla;
 	size_t pos_baldes;
 	size_t frec;
 	tuplas = ordenar_abc(tuplas, len);
@@ -74,7 +74,7 @@ tuplas_t** ordernar_tuplas(tupla_t** tuplas, size_t len){
 	}
 	size_t rango = max_frec - min_frec;
 
-	void* baldes = malloc(sizeof(void*)*rango);
+	void*** baldes = malloc(sizeof(void*)*rango);
 	size_t tams[rango];
 
 	for (size_t i = 0; i < len; i++){//BUSCO EL LARGO DE CADA BALDE
@@ -85,7 +85,7 @@ tuplas_t** ordernar_tuplas(tupla_t** tuplas, size_t len){
 	}
 
 	for (size_t i = 0; i < rango; i++){
-		void* balde = malloc(sizeof(void*)*tams[i]);//creo cada balde con su tamaño correspondiente
+		void** balde = malloc(sizeof(void*)*tams[i]);//creo cada balde con su tamaño correspondiente
 		baldes[i] = balde;
 		tams[i] = 0; //inicializo en 0 el arreglo de tamaños para reutilizarlo más adelante
 	}
@@ -102,13 +102,13 @@ tuplas_t** ordernar_tuplas(tupla_t** tuplas, size_t len){
 	}
 
 	//AHORA TENGO BALDES SEGÚN FRECUENCIA, DONDE EN CADA BALDE LAS TUPLAS ESTÁN ORDENADAS ALFABÉTICAMENTE
-	tuplas_t** ordenado = malloc(sizeof(void*)*len);
+	tupla_t** ordenado = malloc(sizeof(void*)*len);
 	size_t pos = 0;
 	for (size_t balde_actual = 0; balde_actual < rango; balde_actual++){
 		pos_balde = 0;
 		while ( tams[balde_actual]){
 			pos_balde++; //posicion en el balde actual
-			ordenado[pos] = baldes[balde_actual][pos_balde] //pongo la tupla en su posicion correspondiente en el arreglo
+			ordenado[pos] = baldes[balde_actual][pos_balde]; //pongo la tupla en su posicion correspondiente en el arreglo
 			pos++; //posicion de la tupla en el arreglo ordenado
 			tams[balde_actual]--;
 		}
@@ -118,8 +118,7 @@ tuplas_t** ordernar_tuplas(tupla_t** tuplas, size_t len){
 	return (ordenado);
 }
 
-
-tuplas_t** ordenar_abc(tuplas_t** tuplas,size_t len){
+tupla_t** ordenar_abc(tupla_t** tuplas,size_t len){
 	tupla_t* tupla;
 	int max = 0;
 	char* usuario;
@@ -144,6 +143,7 @@ tuplas_t** ordenar_abc(tuplas_t** tuplas,size_t len){
 	//AHORA TENGO UN ARREGLO DE LISTAS DONDE CADA LISTA CORRESPONDE A UN VALOR ASCII
 	size_t len_usuario;
 	int ascii_char;
+	lista_t* balde;
 	for (int i = 0; i < len; i++){ //recorro las tuplas para cargarlas al arreglo
 		tupla = tuplas[i];	//tomo la tupla
 		usuario = tupla_tag(tupla);	//tomo el usuario de la tupla
@@ -155,7 +155,7 @@ tuplas_t** ordenar_abc(tuplas_t** tuplas,size_t len){
 
 	//AHORA TENGO TODOS LOS USUARIOS CARGADOS EN EL ARREGLO DE LISTAS
 	tupla_t** ordenados = malloc(sizeof(tupla_t*)*len); //creo un arreglo de tuplas nuevo
-
+	size_t guardados = 0;
 	for(int i = 0; i < MAX_STR_LEN -1; i++){	//itero por la longitud de las cadenas -1 porque ya hice la primer iteracion
 		for (int n = 0; n < max; n++){	//recorro todas las listas
 			balde = baldes[n];
@@ -175,7 +175,7 @@ tuplas_t** ordenar_abc(tuplas_t** tuplas,size_t len){
 			balde = baldes[ascii_char]; //tomo el balde correspondiente al caracter
 			lista_insertar_ultimo(balde, tupla); //guardo la tupla en la lista que le corresponde
 		}
-		size_t guardados = 0;
+		guardados = 0;
 	}
 	for (int n = 0; n < max; n++){	//recorro todas las listas
 		balde = baldes[n];
@@ -190,7 +190,7 @@ tuplas_t** ordenar_abc(tuplas_t** tuplas,size_t len){
 
 	for (int n = 0; n < max; n++){//libero la memoria ocupada por el arreglo de listas
 		balde = baldes[n];
-		lista_destruir(balde);
+		lista_destruir(balde, NULL);
 	}
 	free(baldes);
 	free(tuplas); //libero el arreglo de tuplas original

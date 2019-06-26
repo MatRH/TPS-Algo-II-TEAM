@@ -39,5 +39,5 @@ void tupla_actualizar(tupla_t* tupla, size_t frec);
  */
 void tupla_destruir(tupla_t* tupla);
 
-tuplas_t** ordernar_tuplas(tupla_t** tuplas, size_t len);
+tupla_t** ordernar_tuplas(tupla_t** tuplas, size_t len);
 #endif
