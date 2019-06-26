@@ -10,9 +10,8 @@ Corrector: Secchi, Ana
 #include <stdbool.h>
 #include <stddef.h>
 #include "heap.h"
+#include "tupla.h"
 #define TAMANIO_INICIAL (size_t) 100
-#define FACT_REDIMENSION (size_t) 2
-#define COEF_REDUC 4 //Si la cant de elem * 4 <= capacidad, redimensiono 
 
 struct heap{
 	void** datos;
@@ -24,7 +23,7 @@ struct heap{
 //Declaraciones funciones auxiliares
 void swap(void** arr, size_t pos1, size_t pos2);
 void downheap(void** arr, size_t pos, size_t tam, cmp_func_t cmp);
-void heapify(void** arr, cmp_func_t cmp, size_t n);
+void** heapify(void** arr, cmp_func_t cmp, size_t n);
 void upheap(void** arr, size_t pos, size_t tam, cmp_func_t cmp);
 bool heap_redimensionar(heap_t* heap_viejo);
 void copiar_arreglo(void** origen, size_t largo, void** destino);
@@ -55,9 +54,7 @@ heap_t *heap_crear_arr(void *arreglo[], size_t n, cmp_func_t cmp){
 		return NULL;
 	}
 	copiar_arreglo(arreglo, n, arr); //Copia el arreglo pasado por parametro al arreglo de destino(arr)
-	//heap->datos = heapify(arr, cmp, n);
-	heapify(arr, cmp, n); //Correccion
-	heap->datos = arr;
+	heap->datos = heapify(arr, cmp, n);
 	heap->cant_elem = n;
 	heap->capacidad = capacidad;
 	heap->cmp = cmp;
@@ -87,7 +84,6 @@ void heap_destruir(heap_t *heap, void destruir_elemento(void *e)){
 
 bool heap_encolar(heap_t *heap, void *elem){
 	if (heap->cant_elem == heap->capacidad){
-		heap->capacidad *= FACT_REDIMENSION; //Aumento la capacidad al doble
 		if(!heap_redimensionar(heap)) return false;
 	}
 	heap->datos[heap->cant_elem] = elem; 
@@ -96,11 +92,7 @@ bool heap_encolar(heap_t *heap, void *elem){
 }
 
 void *heap_desencolar(heap_t *heap){
-	if(!heap || !heap->cant_elem) return NULL;
-	if ((heap->cant_elem * COEF_REDUC <= heap->capacidad) && (heap->cant_elem > TAMANIO_INICIAL)){
-		heap->capacidad /= FACT_REDIMENSION; //Disminuyo la capacidad a la mitad
-		if (!heap_redimensionar(heap)) return NULL;
-	}
+	if(!heap || !heap->cant_elem) return NULL; 
 	void* tope = heap->datos[0];
 	//cambio la raiz por el último y a su vez actualizo la cantidad de elementos
 	swap(heap->datos, 0, --heap->cant_elem);
@@ -110,8 +102,7 @@ void *heap_desencolar(heap_t *heap){
 
 void heap_sort(void *elementos[], size_t cant, cmp_func_t cmp){
 	if (cant < 1) return;  //Porque si esta vacio o tiene un elemento ya esta ordenado
-	//elementos = heapify(elementos, cmp, cant); //Primer paso, darle forma de heap al arreglo
-	heapify(elementos, cmp, cant);
+	elementos = heapify(elementos, cmp, cant); //Primer paso, darle forma de heap al arreglo
 	//Segundo paso, iteramos y swapeamos la raiz con el "ultimo relativo"
 	for (size_t i = cant - 1; i > 0; i--){  //i va a ser tu "ultimo relativo"
 		swap(elementos, 0, i); //Swapeo el primer elemento del arreglo con el ultimo
@@ -119,16 +110,29 @@ void heap_sort(void *elementos[], size_t cant, cmp_func_t cmp){
 	}
 }
 
+bool heap_actualizar(heap_t* heap, char* clave, size_t frec){
+	for (size_t i = 0; i < heap->cant_elem; i++){
+		tupla_t* tupla = heap->datos[i];
+		if (!strcmp(tupla_tag(tupla), clave)){ //Son iguales 
+			tupla_actualizar(tupla, frec); //Actualiza la frecuencia
+			downheap(heap->datos, i, heap->cant_elem, heap->cmp);
+			return true;
+		}
+	}
+	return false; //El tweet no esta en el heap
+}
+
 //-------------------------------------FUNCIONES AUXILIARES------------------------------------------------------
-void heapify(void** arr, cmp_func_t cmp, size_t n){
+void** heapify(void** arr, cmp_func_t cmp, size_t n){
 	/*Reacomoda los elementos del arreglo para que se cumpla la propiedad de heap*/
 	//Aplico downheap desde (n/2) - 1 hacia arriba
 	size_t pos = (n - 1 / 2) - 1;
 	for (size_t i = pos; (int)i >= 0; i--) downheap(arr, i, n, cmp);
-	//return arr;
+	return arr;
 }
 
 bool heap_redimensionar(heap_t* heap){
+	heap->capacidad *= 2;
 	void** datos_nuevo = realloc(heap->datos, heap->capacidad * sizeof(void*));
 	if (!datos_nuevo){
 		free(heap); //Libero la memoria pedida para heap cuando lo cree

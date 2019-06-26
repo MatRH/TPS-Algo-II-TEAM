@@ -235,26 +235,40 @@ static void prueba_heap_volumen(size_t largo){
 
     const size_t largo_clave = 10;
     char** claves = malloc(sizeof(char*) * largo);
-
+    char** claves_aux = malloc(sizeof(char*) * largo); //Este arreglo es el que mantendre ordenado,
+                                                       //para chequear que se desencole en el orden correcto
     // Inserta 'largo' parejas en el abb
     bool ok = true;
     for (unsigned i = 0; i < largo; i++) {
         claves[i] = malloc(sizeof(char) * largo_clave);
+        claves_aux[i] = malloc(sizeof(char) * largo_clave);
         sprintf(claves[i], "%08d", i);
+        sprintf(claves_aux[i], "%08d", i);
+    }
+    //Desordeno el arreglo claves
+    for (size_t i =0 ; i < largo; i++){
+        size_t num_rnd = (size_t)rand() % largo;
+        if (num_rnd == i) continue;
+        char* aux_clave = claves[i];
+        claves[i] = claves[num_rnd];
+        claves[num_rnd] = aux_clave;
+    }
+    //Encolo los elementos en el heap
+    for (unsigned i = 0; i < largo; i++){
         ok = heap_encolar(heap, claves[i]);
         if (!ok){
-        	print_test("Falla encolando muchos elementos", ok);
+			print_test("Falla encolando muchos elementos", ok);
         	break;
         }
     }
 
     print_test("Prueba heap almacenar muchos elementos", ok);
     print_test("Prueba heap la cantidad de elementos es correcta", heap_cantidad(heap) == largo);
-    print_test("Prueba heap ver maximo es corecta", heap_ver_max(heap) == claves[largo - 1]);
-    // Verifica que desencole en el orden correcto
+    print_test("Prueba heap ver maximo es corecta", !strcmp(heap_ver_max(heap), claves_aux[largo - 1])) ;
+    //Verifica que desencole en el orden correcto
     for (size_t i = 0, j = largo - 1; i < largo; i++, j--) {
         char* desencolado = heap_desencolar(heap);
-        ok = desencolado == claves[j]; //quizas falla
+        ok = strcmp(desencolado, claves_aux[j]) == 0;
         if (!ok){
           printf("Valor esperado : %s\n", claves[j]);
           printf("Valor obtenido : %s\n", desencolado);
@@ -265,10 +279,13 @@ static void prueba_heap_volumen(size_t largo){
     print_test("Prueba heap la cantidad de elementos es 0", !heap_cantidad(heap));
     print_test("Ver max devuelve NULL", heap_ver_max(heap) == NULL);
     print_test("Heap desencolar devuelve NULL", heap_desencolar(heap) == NULL);
-    // Destruye el abb y crea uno nuevo que sí libera
     heap_destruir(heap, NULL);
     //Libero la memoria pedida para las claves y valores
-    for (size_t i = 0; i < largo; i ++) free(claves[i]);
+    for (size_t i = 0; i < largo; i ++){
+    	free(claves_aux[i]);
+    	free(claves[i]);
+    }
+    free(claves_aux);
     free(claves);
 }
 
