@@ -80,6 +80,7 @@ int main(int argc, char* argv[]){
     hash_t* usuarios_procesados = procesar_usuarios(input);
     if(usuarios_procesados) analizar_datos(usuarios_procesados);
     else fprintf( stderr, "Error: No se pudieron procesar los usuarios");
+    fclose(input);
     return 0;
   }
 
