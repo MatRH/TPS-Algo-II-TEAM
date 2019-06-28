@@ -143,16 +143,14 @@ void analizar_datos(hash_t* usuarios_procesados){
   }
   hash_iter_destruir(iter);
   //En estas instancias ya tenes el arreglo de tuplas y su longitud
-  tupla_t** tuplas_ordenadas;
-  tuplas_ordenadas = ordernar_tuplas(tuplas, len_tuplas);//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
-  if (!tuplas_ordenadas){
+  //tupla_t** tuplas_ordenadas;
+  if (!ordernar_tuplas(tuplas, len_tuplas)){//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
+  //if (!tuplas_ordenadas){
     printf("Algo fallo\n"); //Habria que liberar cosas si falla quizas
   }
 
-  imprimir_resultado(tuplas_ordenadas);//función que imprime por pantalla los datos obtenidos
+  imprimir_resultado(tuplas);//función que imprime por pantalla los datos obtenidos
   hash_destruir(usuarios_procesados);
-  free(tuplas);
-
 }
 
 void imprimir_resultado(tupla_t** tuplas){

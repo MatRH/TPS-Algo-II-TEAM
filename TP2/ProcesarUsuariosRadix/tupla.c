@@ -22,7 +22,7 @@ struct tupla{  //tupla = (frecuencia, tag)
 size_t indexador(char caracter);
 void counting_sort_abc(tupla_t** tuplas, tupla_t** tuplas_ordenado, size_t pos_iter_radix);
 void counting_sort_frec(tupla_t** tuplas, tupla_t** resultado, size_t max_frec, size_t min_frec, size_t len_tuplas);
-tupla_t** radix_sort(tupla_t** tuplas, size_t len_tuplas, size_t max_frec, size_t min_frec);
+bool radix_sort(tupla_t** tuplas, size_t len_tuplas, size_t max_frec, size_t min_frec);
 char obtener_caracter(char* usuario, size_t pos_iter_radix);
 //*********************************************************************************************
 
@@ -52,7 +52,7 @@ void tupla_destruir(tupla_t* tupla){
 	free(tupla);
 }
 
-tupla_t** ordernar_tuplas(tupla_t** tuplas, size_t len){
+bool ordernar_tuplas(tupla_t** tuplas, size_t len){
 	size_t max_frec = 0, frec = 0;
 	size_t min_frec = tupla_frec(tuplas[0]);
 	tupla_t* tupla;
@@ -65,26 +65,24 @@ tupla_t** ordernar_tuplas(tupla_t** tuplas, size_t len){
 		if (frec > max_frec) max_frec = frec;
 	} //Despues de este for ya tengo las frecuencias para el counting sort
 
-	tupla_t** ordenado = radix_sort(tuplas, len, max_frec, min_frec); //Despues vemos como liberar memoria
-	return (ordenado != NULL) ? ordenado : NULL; //Devuelvo el arreglo de tuplas ordenado si todo salio bien
+	//tupla_t** ordenado = radix_sort(tuplas, len, max_frec, min_frec);
+	//return (ordenado != NULL) ? ordenado : NULL; //Devuelvo el arreglo de tuplas ordenado si todo salio bien
+	return radix_sort(tuplas, len, max_frec, min_frec);
 }
 
 //************************************FUNCIONES AUXILIARES*****************************************************
 size_t indexador(char caracter){
 	/*Recibe un caracter, devuelve el indice correspondiente en el arreglo de tam 63
 	*El orden en el arreglo es el siguiente (segun la tabla ascii):
-	*[0,9] -> numeros
+	*[0,9] -> numeros, o 0 para el caso de '\0' (padding a izquierda)
 	*[10, 35] -> letras mayusculas
 	*[36] -> guion bajo
 	*[37, 62] -> letras minusculas */
-	//if (caracter == '_') return 36;
 	if (caracter == '\0') return 0; //Para evitar problemas con cadenas de distitntas longitudes
 	if (caracter >= 48 && caracter <= 57) return (size_t)(caracter - '0'); //asi te da del 0 al 9
 	if (caracter >= 65 && caracter <= 90) return (size_t)(caracter + 10 - 'A'); //Asi me da el rango
 	if (caracter >= 97 && caracter <= 122) return (size_t)(caracter + 37 - 'a');
 	return 36; //Si no es ninguno de esos casos, significa que es el guion bajo
-	
-
 }
 
 char obtener_caracter(char* usuario, size_t pos_iter_radix){
@@ -93,26 +91,27 @@ char obtener_caracter(char* usuario, size_t pos_iter_radix){
 	return (pos_iter_radix < strlen(usuario)) ? usuario[pos_iter_radix] : '\0'; //Para solucionar problemas de cadenas de diferentes long, seria un padding hacia la izq
 }
 
-tupla_t** radix_sort(tupla_t** tuplas, size_t len_tuplas, size_t max_frec, size_t min_frec){
+bool radix_sort(tupla_t** tuplas, size_t len_tuplas, size_t max_frec, size_t min_frec){
 	/*Ordenamiento no comparativo utilizado para ordenar el arreglo de tuplas primero
 	*alfabeticamente y luego por frecuencia. Como ordenamiento interno utilizara counting sort,
 	*el ordenamiento no es in-place por lo que devuelve un arreglo de tuplas ordenado */
-	tupla_t** ordenado_abc = malloc(sizeof(void*) * len_tuplas); //Utilizado para obtener el arreglo ordenado alfabeticamente
-	if (!ordenado_abc) return NULL;
-	tupla_t** resultado = malloc(sizeof(void*) * len_tuplas); //Utilizado para obtener el arreglo de tuplas ordenado por completo
+	tupla_t** ordenado = malloc(sizeof(void*) * len_tuplas); //Utilizado para obtener el arreglo de tuplas ordenado
+	if (!ordenado) return false;
+	/*tupla_t** resultado = malloc(sizeof(void*) * len_tuplas); //Utilizado para obtener el arreglo de tuplas ordenado por completo
 	if (!resultado){
 		free(ordenado_abc);
 		return NULL;
-	}
-	ordenado_abc[len_tuplas - 1] = NULL;
-	resultado[len_tuplas - 1] = NULL;
+	}*/
+	ordenado[len_tuplas - 1] = NULL;
+	//resultado[len_tuplas - 1] = NULL;
 	for (int i = MAX_STR_LEN - 1; i >= 0; i --){ //Son 15 cifras significativas en este caso O(1)
-		counting_sort_abc(tuplas, ordenado_abc, (size_t)i); //deberia ir haciendo que tuplas siempre quede modificado
-		for (int j = 0; j < len_tuplas - 1; j++) tuplas[j] = ordenado_abc[j]; //Actualizo tuplas O(N)
+		counting_sort_abc(tuplas, ordenado, (size_t)i); //deberia ir haciendo que tuplas siempre quede modificado
+		for (int j = 0; j < len_tuplas - 1; j++) tuplas[j] = ordenado[j]; //Actualizo tuplas O(N)
 	}
-	counting_sort_frec(ordenado_abc, resultado, max_frec, min_frec, len_tuplas); //O(N)
-	free(ordenado_abc); //El resultado final quedo guardado en resultado, se puede liberar
-	return resultado;
+	counting_sort_frec(ordenado, tuplas, max_frec, min_frec, len_tuplas); //O(N)
+	free(ordenado); //El resultado final quedo guardado en el arreglo de tuplas original, libero la memoria
+	//return resultado;
+	return true;
 }
 
 void counting_sort_abc(tupla_t** tuplas, tupla_t** tuplas_ordenado, size_t pos_iter_radix){
@@ -162,7 +161,6 @@ void counting_sort_frec(tupla_t** tuplas, tupla_t** resultado, size_t max_frec, 
 		frec = tupla_frec(tupla_aux);
 		contador[frec - (int)min_frec]++; //Actualizo la cantidad de apariciones de las frecuencias
 	}
-
 	//Actualizo el arreglo de sumas acumuladas
 	for (int i = 1; i < rango; i++){  //O(RANGO)
 		suma_acumulada[i] = suma_acumulada[i - 1] + contador[i - 1];
@@ -174,5 +172,4 @@ void counting_sort_frec(tupla_t** tuplas, tupla_t** resultado, size_t max_frec, 
 		int pos_resultado = suma_acumulada[frec - (int)min_frec] ++;
 		resultado[pos_resultado] = tuplas[pos_aux++];
 	}
-
 }

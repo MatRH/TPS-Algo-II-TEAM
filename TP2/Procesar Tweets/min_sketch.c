@@ -36,7 +36,6 @@ void inicializar_arreglos(int arr1[], int arr2[], int arr3[], int tamanio);
 int obtener_minimo(int frec1, int frec2, int frec3);
 void update_frequency(min_sketch_t* min_sketch, char* tweet, size_t* min_frec);
 int func_cmp(void* a, void* b);
-int exit_cmp(void* a, void* b);
 /* *****************************************************************
  *            IMPLEMENTACION PRIMITIVAS DEL MIN_SKETCH
   * *****************************************************************/
@@ -79,8 +78,8 @@ bool min_sketch_update(min_sketch_t* min_sketch, char* tweet, int k){
 		if (!tupla) return false;
 		if (heap_cantidad(heap) == k){ //Veo si desencolo o no
 			tupla_t* tope_heap = heap_ver_max(heap);
-			if (exit_cmp(tope_heap, tupla) < 0){ //Sale el tweet con menor frecuencia
-				tupla_destruir(heap_desencolar(heap)); //Encolo la nueva tupla mas abajo
+			if (func_cmp(tope_heap, tupla) * -1 < 0){ //Necesito las condiciones contrarias al heap para saber si desencolo
+				tupla_destruir(heap_desencolar(heap)); //Encolo la nueva tupla mas abaj
 			}
 			else{
 				tupla_destruir(tupla); //Porque no la encole
@@ -140,21 +139,6 @@ void inicializar_arreglos(int arr1[], int arr2[], int arr3[], int tamanio){
 	}
 }
 
-int exit_cmp(void* a, void* b){
-	/*Funcion de comparacion para ver si hay que sacar un elemento
-	 *del heap o no*/
-	tupla_t* tupla1 = a;
-	tupla_t* tupla2 = b;
-
-	size_t frec1 = tupla_frec(tupla1);
-	size_t frec2 = tupla_frec(tupla2);
-	char* cad1 = tupla_tag(tupla1);
-	char* cad2 = tupla_tag(tupla2);
-	if (frec1 < frec2 || (frec1 == frec2 && strcmp(cad1, cad2) > 0)) return -1;
-	return 1;
-
-}
-
 int obtener_minimo(int frec1, int frec2, int frec3){
 	/*Obtiene el minimo de los tres valores pasados por parametro*/
 	if (frec1 > frec2){ //El dos es mas chiquito
@@ -165,7 +149,7 @@ int obtener_minimo(int frec1, int frec2, int frec3){
 }
 
 void update_frequency(min_sketch_t* min_sketch, char* tweet, size_t* min_frec){
-	/*Actualiza las frecuencias de los arreglos*/
+	/*Actualiza las frecuencias de los arreglos y a su vez calcula cual es la minima de ellas*/
 	int tam_arrays = min_sketch->tam_arrays;
 	//Aplico la funcion de hash al tweet y actualizo las frecuencias
 	size_t pos1 = min_sketch->func_hash_1(tweet) % tam_arrays;
