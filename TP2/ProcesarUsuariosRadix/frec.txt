@@ -1,0 +1,2 @@
+usuario1,tweet1,tweet1,tweet2
+usuario1,tweet2,tweet3,tweet4

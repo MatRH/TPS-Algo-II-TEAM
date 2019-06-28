@@ -4,45 +4,6 @@ Padrones: 102251, 99846
 Numero de grupo: 23
 Corrector: Secchi, Ana
 */
-/*
-procesar_usuarios: este programa tendrá como objetivo contar la cantidad de
-hashtags que usa cada usuario, leyendo cada línea del archivo pasado por parámetro.
-Como se sabe que la cantidad de usuarios es mucho menor a la cantidad de TTs, y
-que dicho archivo termina, consideramos que se puede almacenar en memoria todo
-lo necesario para procesar la entrada.
-El programa deberá procesar la entrada y luego deberá escribir por salida estándar
-los usuarios y la cantidad de hashtags que utilizaron en tiempo lineal: O(u + t)
-siendo u la cantidad de usuarios encontrados y t la cantidad de hashtags diferentes,
-ordenados según ocurrencias. Los usuarios que tienen la misma cantidad de hashtags
-tienen que ser impresos por orden alfabético (tener en cuenta que para ordenar
-alfabéticamente a los usuarios, los nombres de los mismos no superan más de 15 caracteres).
-
-Ejemplo de invocación: ~$ ./procesar_usuarios tweets.txt
-
-Ejemplo de salida: El usuario Mile tiene 5 tags, Martín 3, Jorge 3, Javier 5,
-Nacho 8, Cami 2, Ceci 5, Ezequiel 3, Matías 2, Dato 6, Anita 1, Gian 1
-
-Se debe escribir por salida estándar:
-  1: Anita, Gian
-  2: Cami, Matias
-  3: Ezequiel, Jorge, Martín
-  5: Ceci, Javier, Mile
-  6: Dato
-  8: Nacho
-
-En ambos casos, la entrada debe tener el siguiente formato:
-
-	Usuario1,tag1,tag2,...
-	Usuario2,tag3,tag4,...
-	Usuario1,tag5,tag1,...
-
-Donde cada línea corresponde a un tweet realizado por el usuario mencionado,
-continuado por una los tags en dicho tweet. Por eso, un mismo usuario puede
-aparecer más de una vez. No hay líneas que no contengan al menos un tag.
-Atención: tener en cuenta que el archivo provisto por el curso, descomprimido,
-460 Mb, y cuenta con más 19 millones de líneas. Se recomienda utilizar el comando
-less de Unix para leerlo, ya que no lo carga en memoria: less tweets.txt.
-*/
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,7 +12,6 @@ less de Unix para leerlo, ya que no lo carga en memoria: less tweets.txt.
 #include "lista.h"
 #include "hash.h"
 #include "tupla.h"
-#define MAX_LEN 150
 
 struct registro{
   char* usuario;
@@ -59,9 +19,9 @@ struct registro{
 };
 
 hash_t* procesar_usuarios(FILE* input);
-void analizar_datos(hash_t* usuarios_procesados);
+bool analizar_datos(hash_t* usuarios_procesados);
 void imprimir_resultado(tupla_t** tuplas);//función que imprime por pantalla los datos obtenidos
-void hash_destruir_w(void *hash){
+void hash_destruir_w(void *hash){//un wrapper para poder pasarlo como funcion de destrucciond de dato
 	hash_destruir(hash);
 }
 
@@ -77,24 +37,31 @@ int main(int argc, char* argv[]){
       fprintf( stderr, "Error: archivo fuente inaccesible");
       return 0;
     }
+
     hash_t* usuarios_procesados = procesar_usuarios(input);
     fclose(input);
-    if(usuarios_procesados) analizar_datos(usuarios_procesados);
-    else fprintf(stderr, "%s\n", "Error: No se pudieron procesar los usuarios");
+    bool todo_ok;
+    if(usuarios_procesados) todo_ok = analizar_datos(usuarios_procesados);
+    if(!usuarios_procesados || !todo_ok){
+      fprintf(stderr, "%s\n", "Error: No se pudieron procesar los usuarios");
+    }
     return 0;
   }
 
 hash_t* procesar_usuarios(FILE* input){
-  char linea[MAX_LEN];
   hash_t* usuarios = hash_crear(hash_destruir_w); //usuarios va a ser un hash de hashes, donde cada usuario es una clave y un hash con los tweets el valor
+  if(!usuarios) return NULL;
   char* usuario;
   char* tweet;
   bool todo_ok = true;
   char** strv;
-  while(fgets(linea, MAX_LEN, input) && todo_ok){
+  char* linea = NULL;//para que getline se encargue de manejar la memoria
+  size_t num_bytes = 0;//para que getline se encargue de manejar la memoria
+  long int bytes_leidos;
+  while((bytes_leidos = getline(&linea, &num_bytes, input)) != -1 && todo_ok){
+     if (linea[bytes_leidos - 1] == '\n') linea[--bytes_leidos] = '\0'; //Piso el \n
      strv = split(linea, ',');
      usuario = strv[0];
-
      if(!hash_pertenece(usuarios, usuario)){
        hash_t* tweets = hash_crear(NULL);
        todo_ok = hash_guardar(usuarios, usuario, tweets);//guardo el usuario y creo el hash para sus tweets
@@ -109,21 +76,24 @@ hash_t* procesar_usuarios(FILE* input){
        i++;
      }
      free_strv(strv);
+
   }
+  free(linea);
   if (todo_ok) return usuarios;
+  else hash_destruir(usuarios);
   return NULL;
 }
 
-void analizar_datos(hash_t* usuarios_procesados){
+bool analizar_datos(hash_t* usuarios_procesados){
   hash_iter_t* iter = hash_iter_crear(usuarios_procesados);
-  if (!iter) return;
+  if (!iter) return false;
 
   size_t num_usuario = 0;
   size_t len_tuplas = hash_cantidad(usuarios_procesados) + 1; //Asi le ponemos el NULL al final
   tupla_t** tuplas = malloc((sizeof(void*))*(len_tuplas)); //Arreglo de tuplas
   if (!tuplas){
     hash_iter_destruir(iter);
-    return;
+    return false;
   }
   tuplas[len_tuplas - 1] = NULL; //Para indicar el final del arreglo
   tupla_t* tupla;
@@ -135,22 +105,19 @@ void analizar_datos(hash_t* usuarios_procesados){
     tupla = tupla_crear(usuario, cantidad);
     if (!tupla){
       hash_iter_destruir(iter);
-      return;
+      return false;
     }
-    //tuplas[hash_cantidad(usuarios_procesados)] = NULL; //para marcar el final del arreglo
     tuplas[num_usuario++] = tupla; //Guardas la tupla
     hash_iter_avanzar(iter);
   }
   hash_iter_destruir(iter);
   //En estas instancias ya tenes el arreglo de tuplas y su longitud
   //tupla_t** tuplas_ordenadas;
-  if (!ordernar_tuplas(tuplas, len_tuplas)){//función que ordena un arreglo de tuplas primero según frecuencuencia y después alfabéticamente
-  //if (!tuplas_ordenadas){
-    printf("Algo fallo\n"); //Habria que liberar cosas si falla quizas
-  }
+  if (!ordernar_tuplas(tuplas, len_tuplas)) return false;
 
   imprimir_resultado(tuplas);//función que imprime por pantalla los datos obtenidos
   hash_destruir(usuarios_procesados);
+  return true;
 }
 
 void imprimir_resultado(tupla_t** tuplas){
@@ -171,6 +138,6 @@ void imprimir_resultado(tupla_t** tuplas){
     fprintf(stdout, "%s", usuario);
     tupla_destruir(tupla_aux);
   }
-  printf("\n"); //Este \n es para generar la salida pedida, quizas no es necesario
+  printf("\n");
   free(tuplas);
 }
