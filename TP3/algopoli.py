@@ -33,13 +33,21 @@ Aunque dos delincuentes se comuniquen 1, 2 o n veces, la comunicación sólo apa
 """
 import sys #para leer parametros de la linea de comando
 
-main():
+def main():
     argumentos = sys.argv
     if (len(argumentos != 2)) print("Error: Cantidad de parametros incorrecta", file=sys.stderr)
     file_name = argumentos[1]
     input = fopen(file_name)
     #menu o algo por el estilo para que elijan el script a correr
     close(input)
+
+def min_seguimientos()
+def determinar_importantes()
+def armar_persecucion()
+def buscar_comunidades()
+def buscar_ciclo()
+def cconexas_fuertes()
+main()
 
 """
 Mínimos Seguimientos
