@@ -38,10 +38,63 @@ def main():
     if (len(argumentos != 2)) print("Error: Cantidad de parametros incorrecta", file=sys.stderr)
     file_name = argumentos[1]
     input = fopen(file_name)
+    #armo el grafo con el input
     #menu o algo por el estilo para que elijan el script a correr
     close(input)
 
-def min_seguimientos()
+"""
+Mínimos Seguimientos
+Comando: min_seguimientos.
+Parámetros: origen y destino.
+Utilidad: imprime una lista con los delincuentes (su código identificador) con
+los cuáles vamos del delincuente origen al delincuente destino de la forma más
+rápida. En caso de no poder hacer el seguimiento (i.e. no existe camino),
+imprimir Seguimiento imposible.
+Salida:
+      10 -> 57 -> 4
+      30 -> 36 -> 38 -> 20 -> 45 -> 12
+def min_seguimientos(grafo, salida, fin):
+    camino = dijstra_no_pesado(grafo, salida) #devuelve un diccionario, {llegada: via}, devuelve solo los vertices a los que puedo llegar desde salida
+    voy_por = None
+    if fin not in camino.keys(): #si no puedo llegar al final vuelvo
+        print("Seguimiento imposible")
+        return
+    voy_por = camino[fin]
+    camino_final = Pila()
+    while voy_por:
+        camino_final.apilar(voy_por)
+        voy_por = camino[voy_por]
+    #ahora tengo una pila con el camino
+    representacion = "{}".format(salida)
+    while !camino_final.esta_vacia():
+        voy_por = camino_final.desapilar()
+        representacion += " -> {}".format(voy_por)
+    print(representacion + " -> {}".format(fin))
+
+def dijstra_no_pesado(grafo, salida):
+    dist = {}
+    visitados = {}
+    desde = {}
+    visitar = Cola()
+    vertices = grafo.vertices()
+    for v in vertices: #inicializo las distancias en infinito
+        dist[v] = INF
+    dist[salida] = 0 #la distancia a donde empiezo es 0
+    visitados[a] = None
+    desde[a] = None
+    for v in grafo.adyacentes(salida): #armo una cola con los adyacentes
+        visitar.encolar(v)
+        dist[v] = 1
+        desde[v] = salida
+    while !visitar.esta_vacia():
+        vertice = visitar.desencolar()
+        distancia_total = dist[desde[vertice]] + 1 #la distancia desde el vertice que vi al vertice actual + 1
+        if distancia_total < dist[vertice]: #encontre un camino más corto a ese vértice
+            dist[vertice] = distancia_total
+            desde[vertice] = desde[vertice]
+    #falta terminar, 
+
+
 def determinar_importantes()
 def armar_persecucion()
 def buscar_comunidades()
@@ -50,25 +103,13 @@ def cconexas_fuertes()
 main()
 
 """
-Mínimos Seguimientos
-
-    Comando: min_seguimientos.
-    Parámetros: origen y destino.
-    Utilidad: nos imprime una lista con los delincuentes (su código identificador) con los cuáles vamos del delincuente origen al delincuente destino de la forma más rápida. En caso de no poder hacer el seguimiento (i.e. no existe camino), imprimir Seguimiento imposible.
-    Ejemplo:
-    Entrada:
-
-      min_seguimientos 10 4
-      min_seguimientos 30 12
-
-    Salida:
-
-      10 -> 57 -> 4
-      30 -> 36 -> 38 -> 20 -> 45 -> 12
-
 Delincuentes más importantes
 
-Usualmente nos gustaría determinar cuáles son los vértices más importantes en un grafo en función de su centralidad exacta. Teniendo en cuenta que se cuenta con demasiados delincuentes, el cálculo exacto de la centralidad puede consumir una cantidad excesiva de tiempo. Por lo tanto, se pide realizar una aproximación para determinar los delincuentes más importantes. Las formas posibles son:
+Usualmente nos gustaría determinar cuáles son los vértices más importantes en un
+grafo en función de su centralidad exacta. Teniendo en cuenta que se cuenta con
+demasiados delincuentes, el cálculo exacto de la centralidad puede consumir una
+cantidad excesiva de tiempo. Por lo tanto, se pide realizar una aproximación para
+determinar los delincuentes más importantes. Las formas posibles son:
 
     Betweeness Centrality, aproximado.
     PageRank.

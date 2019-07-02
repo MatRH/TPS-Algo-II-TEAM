@@ -9,6 +9,8 @@ Corrector: Secchi, Ana
 #include <stdlib.h>
 #include <string.h>
 #include "tupla.h"
+#include "lista.h"
+#define	MAX_STR_LEN 15	//longitud maxima de las cadenas guardadas para ordenar
 
 struct tupla{  //tupla = (frecuencia, tag)
 	char* tag;
@@ -43,7 +45,7 @@ void tupla_destruir(tupla_t* tupla){
 	free(tupla);
 }
 
-/*ORDENA IN PLACE un arreglo de tuplas, primero segun su frecuencia y luego
+/*ORDENA un arreglo de tuplas, primero segun su frecuencia y luego
 alfabeticamente*/
 /*
 1) Ordeno el arreglo con radix sort,	O(len)
@@ -118,5 +120,81 @@ tuplas_t** ordernar_tuplas(tupla_t** tuplas, size_t len){
 
 
 tuplas_t** ordenar_abc(tuplas_t** tuplas,size_t len){
+	tupla_t* tupla;
+	int max = 0;
+	char* usuario;
+	for (int i = 0; i < len; i++){	//busco el maximo valor ascii de las cadenas
+		tupla = tuplas[i];
+		usuario = tupla_tag(tupla);
+		size_t pos_caracter = 0;
+		char caracter = usuario[pos_caracter];
+		while(caracter){
+			if ((int)caracter > max) max = (int)caracter;
+			caracter = usuario[pos_caracter++];
+		}
+	}
+
+	//AHORA TENGO EL MAXIMO VALOR ASCII, SE CUANTOS "BALDES" hacer
+	void* baldes[max]; //creo un arreglo de punteros de longitud max
+	for (int i = 0; i < max; i++){	//creo los baldes
+		lista_t* balde = lista_crear();	//malloc
+		baldes[i] = balde;
+	}
+
+	//AHORA TENGO UN ARREGLO DE LISTAS DONDE CADA LISTA CORRESPONDE A UN VALOR ASCII
+	size_t len_usuario;
+	int ascii_char;
+	for (int i = 0; i < len; i++){ //recorro las tuplas para cargarlas al arreglo
+		tupla = tuplas[i];	//tomo la tupla
+		usuario = tupla_tag(tupla);	//tomo el usuario de la tupla
+		len_usuario = strlen(usuario);
+		ascii_char = (int)usuario[len_usuario];	//tomo el valor ascii del ultimo caracter del usuario
+		balde = baldes[ascii_char]; //tomo el balde correspondiente al caracter
+		lista_insertar_ultimo(balde, tupla); //guardo la tupla en la lista que le corresponde
+	}
+
+	//AHORA TENGO TODOS LOS USUARIOS CARGADOS EN EL ARREGLO DE LISTAS
+	tupla_t** ordenados = malloc(sizeof(tupla_t*)*len); //creo un arreglo de tuplas nuevo
+
+	for(int i = 0; i < MAX_STR_LEN -1; i++){	//itero por la longitud de las cadenas -1 porque ya hice la primer iteracion
+		for (int n = 0; n < max; n++){	//recorro todas las listas
+			balde = baldes[n];
+			while (!lista_esta_vacia(balde)){	//vacio cada balde
+				tupla = lista_ver_primero(balde);
+				lista_borrar_primero(balde);
+				ordenados[guardados] = tupla;
+				guardados++;
+			}
+		}
+		for (int j = 0; j < len; j++){
+			tupla = ordenados[j];	//tomo la tupla
+			usuario = tupla_tag(tupla);	//tomo el usuario de la tupla
+			len_usuario = strlen(usuario);
+			if (len_usuario < i) len_usuario = 0; //para las palabras con menos de 15 caracteres
+			ascii_char = (int)usuario[len_usuario];	//tomo el valor ascii del ultimo caracter del usuario
+			balde = baldes[ascii_char]; //tomo el balde correspondiente al caracter
+			lista_insertar_ultimo(balde, tupla); //guardo la tupla en la lista que le corresponde
+		}
+		size_t guardados = 0;
+	}
+	for (int n = 0; n < max; n++){	//recorro todas las listas
+		balde = baldes[n];
+		while (!lista_esta_vacia(balde)){	//vacio cada balde
+			tupla = lista_ver_primero(balde);
+			lista_borrar_primero(balde);
+			ordenados[guardados] = tupla;
+			guardados++;
+		}
+	}
+	//AHORA EN ORDENADOS TENGO LAS TUPLAS ORDENADAS ALFABÉTICAMENTE
+
+	for (int n = 0; n < max; n++){//libero la memoria ocupada por el arreglo de listas
+		balde = baldes[n];
+		lista_destruir(balde);
+	}
+	free(baldes);
+	free(tuplas); //libero el arreglo de tuplas original
+
+	return ordenados;
 
 }

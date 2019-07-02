@@ -95,6 +95,10 @@ class Grafo:
             str += "}\n"
         return str
 
+    def cantidad_aristas():#no se si vale la pena llevar la cuenta para que sea O(1) o recorrer en el momento
+
+    def vertices():#devuelve una lista con todos los vertices
+
 def test:
     print ("Creo un grafo")
     grafo = Grafo() #creo un grafo
