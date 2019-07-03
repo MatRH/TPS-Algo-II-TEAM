@@ -71,28 +71,25 @@ def min_seguimientos(grafo, salida, fin):
         representacion += " -> {}".format(voy_por)
     print(representacion + " -> {}".format(fin))
 
-def dijstra_no_pesado(grafo, salida):
-    dist = {}
-    visitados = {}
-    desde = {}
-    visitar = Cola()
-    vertices = grafo.vertices()
-    for v in vertices: #inicializo las distancias en infinito
-        dist[v] = INF
-    dist[salida] = 0 #la distancia a donde empiezo es 0
-    visitados[a] = None
-    desde[a] = None
-    for v in grafo.adyacentes(salida): #armo una cola con los adyacentes
-        visitar.encolar(v)
-        dist[v] = 1
-        desde[v] = salida
-    while !visitar.esta_vacia():
-        vertice = visitar.desencolar()
-        distancia_total = dist[desde[vertice]] + 1 #la distancia desde el vertice que vi al vertice actual + 1
-        if distancia_total < dist[vertice]: #encontre un camino más corto a ese vértice
-            dist[vertice] = distancia_total
-            desde[vertice] = desde[vertice]
-    #falta terminar, 
+def dijkstra_no_pesado(grafo, origen):
+  visitados = {}
+  distancia = {}
+  padre = {}
+  padre[origen]=None
+  for w in grafo.vertices():
+      distancia[w] = INF
+  distancia[origen] = 0
+  q = Cola()
+  q.encolar(origen, 0)
+  while !q.esta_vacia():
+      v, dist = q.desencolar()
+      visitados[v] = True
+      for w in grafo.adyacentes(v):
+          if !visitados[w] && dist + 1 < distancia[w]:
+              padre[w] = v
+              distancia[w] = distancia[v] + 1
+              q.encolar[w, distancia[w]]
+  return distancia, padre
 
 
 def determinar_importantes()
