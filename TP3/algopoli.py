@@ -33,6 +33,7 @@ Aunque dos delincuentes se comuniquen 1, 2 o n veces, la comunicación sólo apa
  una vez en el archivo (que quiere decir que se hace esa comunicación al menos una vez).
 """
 import sys #para leer parametros de la linea de comando
+import heapq #Para poder utilizar el heap de python
 
 def main():
     argumentos = sys.argv
@@ -121,8 +122,12 @@ Por lo tanto, el comando pedido debe ser:
 """
 def determinar_importantes(grafo, cantidad):
     ranks = pagerank(grafo)
-    for vertice, rank in ranks:
+    heap = []
+    for vertice, rank in ranks.ites():
+        heappush(heap, (rank, vertice)) 
         #un heap de minimos y me quedo con los cantidad maximos
+    page_rank = heap[cantidad : ] #Slice para tener los k mas importantes, sigue siendo lista de tuplas, lo transformo en lista
+    page_rank = [delincuente for i, delincuente in page_rank] #Lista por comprension, creo que anda
     return page_rank
 
 def pagerank(grafo):
@@ -138,7 +143,7 @@ def pagerank(grafo):
             for adyacente in adyacentes:
                 if adyacente not in iter_rank.keys(): iter_rank[adyacente] = 0
                 iter_rank[adyacente] += page_rank[vertice]/cant_adyacentes #el rank en esta iteracion
-        for vertice, rank in iter_rank.keys():
+        for vertice, rank in iter_rank.keys():  #No seria .items() ?
             page_rank[vertice] = rank #guardo el resultado de la ultima iteracion
     return page_rank
 
@@ -168,6 +173,46 @@ Persecución rápida
 
     17 -> 35 -> 20
     19 -> 42
+"""
+def persecucion(grafo, delincuentes, k): #Fijate como hacer que reciba muchos parametros
+    '''Obtiene el camino mas corto de uno de los delincuentes pasados por parametro a uno de los k mas importantes'''
+    #supongo que es una lista despues modificar de ultima
+    #Primero obtengo los delincuentes mas buscados
+    mas_buscados = determinar_importantes(grafo, k) #Obtengo el diccionario de los k mas buscados quizas sea una lista
+    min_dist = 0   #Si le pasas esto a min distancia podes mejorar las cosas, porque si tu persecucion mas corta es 7 y vas por 8 cortas
+    persecucion = [] #Lista utilizada para guardar como es la persecucion
+
+    for agente in delincuentes: #Son agentes en cubierto
+        camino, distancia = bfs(grafo, agente, 0, mas_buscados) #Camino seria el diccionario de padres
+        #Ahora tengo que ver cual es el minimo, bah en realidad cortaste supuestamente al chocar con un delincuente, ergo, el que este en el diccionario de caminos es el minimo
+        delincuente = None #Me fijo el camino a que delincuente encontre
+        for thief in mas_buscados:
+            if thief in camino.keys():
+                if min_dist == 0 or distancia[thief] <= min_dist and : #Si pasa esto, encontre un agente que tiene una persecucion faster
+                    delincuente = thief
+                    min_dist = distancia[thief]
+                break #Creo que con este break salgo del for de mas adentro
+        #Me fijo si encontre un camino mas corto, para ello delincuente tiene que ser != None
+        if delincuente != None:
+            #Si el delincuente es distinto de None quiere decir que encontre una mejor persecucion
+            persecucion = construir_camino(camino, agente, delincuente)
+
+
+    #Aca ya tendria el camino minimo
+    if len(persecucion) == 0:
+        print("Error: Persecución imposible")
+        return
+    imprimir_camino(persecucion, ' -> ')
+
+
+def divulgar(grafo, delincuente, n):
+    '''Imprime una lista con todos los delincuentes a los cuales les terminaria llegando un rumor
+    que comienza en el delincuente pasado por parametro, y a lo sumo puede realizar n saltos'''
+    camino = bfs(grafo, delincuente, n) #esto me da dos diccionarios, el de distancias no necesito
+    separador = ', '
+    print(separador.join(camino.keys)) #magia no se si anda
+
+"""
 
 Comunidades
 
@@ -186,21 +231,6 @@ Para implementar esto, utilizaremos el algoritmo de Label Propagation para detec
     Comunidad 1: 0, 39, 59, 1, 47, 62, 2, 20, 3, 37, 31, 96, 16, 32, 80, 14, 40, 13, 89, 64, 72, 21, 15, 50, 97, 4, 17, 67, 6, 74, 54, 73, 93, 11, 65, 57, 70, 75, 7, 29, 8, 19, 55, 69, 33, 78, 44, 84, 43, 9, 42, 10, 53, 58, 35, 48, 45, 12, 25, 52, 71, 66, 36, 41, 79, 99, 92, 28, 56, 23, 18, 91, 34, 86, 30, 81, 38, 51, 87, 88, 22, 46, 63, 24, 95, 82, 49, 26, 27, 83, 90, 68, 94, 98, 61, 85, 76, 77, 60
 
 Tener en cuenta que siendo un archivo generado de forma aleatoria, los resultados obtenibles para este punto tienen muy poco sentido con la realidad.
-Divulgación de rumor
-
-    Comando: divulgar.
-    Parámetros: delincuente y n.
-    Utilidad: Imprime una lista con todos los delincuentes a los cuales les termina llegando un rumor que comienza en el delincuente pasado por parámetro, y a lo sumo realiza n saltos (luego, se empieza a tergiversar el mensaje), teniendo en cuenta que todos los delincuentes transmitirán el rumor a sus allegados.
-    Ejemplo:
-    Entrada
-
-    divulgar 30 4
-    divulgar 30 1
-
-    Salida:
-
-    36, 79, 84, 38, 71, 48, 13, 76, 77, 20, 64, 72, 57, 23, 7, 24, 85, 61, 47, 19, 25, 40, 37, 52, 56, 74, 66, 1, 18, 27, 26, 80, 62, 97, 86, 15, 53, 31, 78, 99, 81, 6, 29, 11, 33, 45, 51, 65, 87, 42, 50, 93, 41, 90, 4, 70, 92, 67, 95, 0, 82, 63, 60, 5, 9, 68, 59, 89, 34, 8, 14, 73, 28, 16, 49, 43, 83, 75, 39, 21, 32, 54, 55, 17, 91, 46
-    36, 79, 84
 
 Ciclo de largo n
 
@@ -236,3 +266,21 @@ Se debe leer el apunte sobre componentes fuertemente conexas.
     CFC 2: 77, 18, 73, 47, 91, 57, 30, 64, 82, 60, 85, 58, 22, 87, 50, 89, 14, 70, 32, 96, 37, 3, 29, 7, 40, 17, 4, 35, 53, 24, 75, 94, 43, 31, 78, 2, 52, 44, 45, 99, 69, 8, 16, 25, 13, 79, 15, 97, 20, 38, 36, 41, 46, 95, 1, 92, 23, 51, 62, 11, 68, 80, 93, 67, 5, 65, 83, 27, 28, 54, 33, 12, 34, 19, 56, 76, 84, 63, 81, 21, 74, 6, 90, 55, 66, 86, 98, 88, 42, 9, 61, 48, 49, 59, 26, 72, 71, 39, 0
 
 """
+
+#*************************************FUNCIONES AUXILIARES************************************************
+def construir_camino(camino, agente, delincuente):
+    '''Reconstruye el camino desde el agente hacia el delincuente con la ayuda del diccionario pasado por parametro.
+    Devuelve una lista con dicho camino'''
+    path = []
+    path.append(delincuente)
+    while camino[delincuente] != None:
+        path.append(camino[delincuente])
+        delincuente = camino[delincuente] #actualizo el delincuente, o sea, voy hacia atras
+
+    return path[::-1] #Invierto el orden para tener el orden correcto
+
+def imprimir_camino(lista, formato):
+    '''Recibe una lista, y un formato, que es como separar a los elementos de la lista'''
+    #debo mapear
+    lista = [str(x) for x in lista] #Creo que asi se pasaba a cadenas todos los elementos que contiene
+    print(formato.join(lista)) 

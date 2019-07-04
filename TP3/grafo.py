@@ -61,7 +61,7 @@ class Grafo:
     def adyacentes(self, vertice):#devuelve una lista con los vertices adyacentes a vertice
         resultado = []
         vertices = self.vertices
-        if vertice not in vertices.keys() return resultado
+        if vertice not in vertices.keys(): return resultado
         adyacentes = vertices[vertice]
         for adyacente in adyacentes.keys():
             resultado.append(adyacente)
@@ -75,14 +75,14 @@ class Grafo:
 
     def eliminar_arista(self, salida, llegada):#elimina la arista salida->llegada
         vertices = self.vertices
-        if salida not in vertices.keys() return
+        if salida not in vertices.keys(): return
         adyacentes = vertices[salida]
         del adyacentes[llegada]
         #deberiamos borrar el vertice si queda solo???? en ese caso recordar actualizar la cantidad de vertices
 
     def eliminar_vertice(self, vertice):
         vertices = self.vertices
-        if vertice not in vertices.keys() return
+        if vertice not in vertices.keys(): return
         del vertices[vertice]
         self.cantidad_vertices--
 
