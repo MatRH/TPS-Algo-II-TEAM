@@ -1,4 +1,5 @@
 
+# -*- coding: utf-8 -*-
 """Importante: En caso de recibir un error FileNotFoundError: [Errno 2] No such
  file or directory: './algopoli': './algopoli', tener en cuenta que para el caso
   de enviar código escrito en Python es necesario además indicar la ruta del
@@ -35,7 +36,7 @@ import sys #para leer parametros de la linea de comando
 
 def main():
     argumentos = sys.argv
-    if (len(argumentos != 2)) print("Error: Cantidad de parametros incorrecta", file=sys.stderr)
+    if (len(argumentos != 2)): print("Error: Cantidad de parametros incorrecta", file=sys.stderr)
     file_name = argumentos[1]
     input = fopen(file_name)
     #armo el grafo con el input
@@ -50,9 +51,10 @@ Utilidad: imprime una lista con los delincuentes (su código identificador) con
 los cuáles vamos del delincuente origen al delincuente destino de la forma más
 rápida. En caso de no poder hacer el seguimiento (i.e. no existe camino),
 imprimir Seguimiento imposible.
-Salida:
+Salida
       10 -> 57 -> 4
       30 -> 36 -> 38 -> 20 -> 45 -> 12
+"""
 def min_seguimientos(grafo, salida, fin):
     camino = dijstra_no_pesado(grafo, salida) #devuelve un diccionario, {llegada: via}, devuelve solo los vertices a los que puedo llegar desde salida
     voy_por = None
@@ -91,14 +93,6 @@ def dijkstra_no_pesado(grafo, origen):
               q.encolar[w, distancia[w]]
   return distancia, padre
 
-
-def determinar_importantes()
-def armar_persecucion()
-def buscar_comunidades()
-def buscar_ciclo()
-def cconexas_fuertes()
-main()
-
 """
 Delincuentes más importantes
 
@@ -124,7 +118,41 @@ Por lo tanto, el comando pedido debe ser:
     Salida:
 
     20, 89, 42, 3, 49, 47, 56, 28, 22, 8
+"""
+def determinar_importantes(grafo, cantidad):
+    ranks = pagerank(grafo)
+    for vertice, rank in ranks:
+        #un heap de minimos y me quedo con los cantidad maximos
+    return page_rank
 
+def pagerank(grafo):
+    max_iter = grafo.cantidad()/MAX_ITER
+    page_rank = {}
+    for vertice in grafo.vertices():
+        page_rank[vertice] = 1/grafo.cantidad()
+    for i in range(max_iter):
+        iter_rank = {}
+        for vertice in grafo.vertices():
+            adyacentes = grafo.adyacentes(vertice)
+            cant_adyacentes = len()
+            for adyacente in adyacentes:
+                if adyacente not in iter_rank.keys(): iter_rank[adyacente] = 0
+                iter_rank[adyacente] += page_rank[vertice]/cant_adyacentes #el rank en esta iteracion
+        for vertice, rank in iter_rank.keys():
+            page_rank[vertice] = rank #guardo el resultado de la ultima iteracion
+    return page_rank
+
+
+
+
+def armar_persecucion()
+def buscar_comunidades()
+def buscar_ciclo()
+def cconexas_fuertes()
+main()
+
+
+"""
 Persecución rápida
 
     Comando: persecucion.

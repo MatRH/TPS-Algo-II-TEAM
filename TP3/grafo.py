@@ -1,4 +1,4 @@
-#!/usr/bin/python
+# -*- coding: utf-8 -*-
 class Grafo:
     'Implementación de un TDA grafo dirigido, pesado con Diccionarios de Diccionarios'
     """Hay un diccionario general donde cada clave es un vertice y cada valor es
