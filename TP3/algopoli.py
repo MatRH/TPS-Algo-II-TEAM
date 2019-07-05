@@ -34,6 +34,9 @@ Aunque dos delincuentes se comuniquen 1, 2 o n veces, la comunicación sólo apa
 """
 import sys #para leer parametros de la linea de comando
 import heapq #Para poder utilizar el heap de python
+from collections import Counter # sirve para contar las apariciones de elementos en una lista
+COEF_COMUNIDADES = 0.5 #coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCIÓN DE COMUNIDADES
+COEF_RANK = 0.5#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
 
 def main():
     argumentos = sys.argv
@@ -124,14 +127,14 @@ def determinar_importantes(grafo, cantidad):
     ranks = pagerank(grafo)
     heap = []
     for vertice, rank in ranks.ites():
-        heappush(heap, (rank, vertice)) 
+        heappush(heap, (rank, vertice))
         #un heap de minimos y me quedo con los cantidad maximos
     page_rank = heap[cantidad : ] #Slice para tener los k mas importantes, sigue siendo lista de tuplas, lo transformo en lista
     page_rank = [delincuente for i, delincuente in page_rank] #Lista por comprension, creo que anda
     return page_rank
 
 def pagerank(grafo):
-    max_iter = grafo.cantidad()/MAX_ITER
+    max_iter = grafo.cantidad()*COEF_RANK
     page_rank = {}
     for vertice in grafo.vertices():
         page_rank[vertice] = 1/grafo.cantidad()
@@ -147,13 +150,8 @@ def pagerank(grafo):
             page_rank[vertice] = rank #guardo el resultado de la ultima iteracion
     return page_rank
 
-
-
-
-def armar_persecucion()
-def buscar_comunidades()
-def buscar_ciclo()
-def cconexas_fuertes()
+def buscar_ciclo():
+def cconexas_fuertes():
 main()
 
 
@@ -231,7 +229,36 @@ Para implementar esto, utilizaremos el algoritmo de Label Propagation para detec
     Comunidad 1: 0, 39, 59, 1, 47, 62, 2, 20, 3, 37, 31, 96, 16, 32, 80, 14, 40, 13, 89, 64, 72, 21, 15, 50, 97, 4, 17, 67, 6, 74, 54, 73, 93, 11, 65, 57, 70, 75, 7, 29, 8, 19, 55, 69, 33, 78, 44, 84, 43, 9, 42, 10, 53, 58, 35, 48, 45, 12, 25, 52, 71, 66, 36, 41, 79, 99, 92, 28, 56, 23, 18, 91, 34, 86, 30, 81, 38, 51, 87, 88, 22, 46, 63, 24, 95, 82, 49, 26, 27, 83, 90, 68, 94, 98, 61, 85, 76, 77, 60
 
 Tener en cuenta que siendo un archivo generado de forma aleatoria, los resultados obtenibles para este punto tienen muy poco sentido con la realidad.
+"""
+def buscar_comunidades(grafo, n):
+    resultado = ""
+    labels = {}
+    i = 0
+    vertices = grafo.vertices()
+    cantidad_vertices = len(vertices)
+    iteraciones  = cantidad_vertices * COEF_COMUNIDADES
+    for v in vertices: #le asigno a cada vertice como etiqueta su posicion en la lista de vertices
+        label[v] = i
+        i += 1
+    for j in range(iteraciones):
+        for vertice in vertices:
+            entrantes_v = grafo.entrantes(v) #primiva que devuelve una lista de los vertices que tienen como adyacente a v
+            max_label = max(entrantes_v)
+            labels[v] = max_label
+    cuenta = Counter(label.values()) #cuento cuantas veces aparece cada valor repetido
+    num_comunidad = 0
+    for etiqueta, cuenta in cuenta.items(): #tomo cada etiqueta y sus apariciones
+        if cuenta >= n :#si la comunidad tiene al menos n miembros
+            resultado += ("Comunidad {}: ".format(num_comunidad)) #agrego al resultado el indice de la comunidad
+            for vertice, label in labels:
+                if etiqueta == label:
+                    resultado += "{}, ".format(vertice)#agrego al resultado los vertices que pertenecen a la comunidad
+            num_comunidad++
+    print(resultado)
 
+
+
+"""
 Ciclo de largo n
 
     Comando: divulgar_ciclo
@@ -267,6 +294,12 @@ Se debe leer el apunte sobre componentes fuertemente conexas.
 
 """
 
+
+
+
+
+
+
 #*************************************FUNCIONES AUXILIARES************************************************
 def construir_camino(camino, agente, delincuente):
     '''Reconstruye el camino desde el agente hacia el delincuente con la ayuda del diccionario pasado por parametro.
@@ -283,4 +316,4 @@ def imprimir_camino(lista, formato):
     '''Recibe una lista, y un formato, que es como separar a los elementos de la lista'''
     #debo mapear
     lista = [str(x) for x in lista] #Creo que asi se pasaba a cadenas todos los elementos que contiene
-    print(formato.join(lista)) 
+    print(formato.join(lista))
