@@ -37,15 +37,51 @@ import heapq #Para poder utilizar el heap de python
 from collections import Counter # sirve para contar las apariciones de elementos en una lista
 COEF_COMUNIDADES = 0.5 #coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCIÓN DE COMUNIDADES
 COEF_RANK = 0.5#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
+COMANDOS = ["min_seguimientos", "persecucion", "mas_imp", "comunidades", "divulgar", "divulgar_ciclo", "cfc"]
 
 def main():
-    argumentos = sys.argv
-    if (len(argumentos != 2)): print("Error: Cantidad de parametros incorrecta", file=sys.stderr)
+    argumentos = len(sys.argv) #Me da la cantidad de argumentos recibidos
+    if argumentos != 2: raise Exception("Error: Cantidad de parametros incorrecta")
     file_name = argumentos[1]
-    input = fopen(file_name)
-    #armo el grafo con el input
-    #menu o algo por el estilo para que elijan el script a correr
-    close(input)
+    with open(file_name, 'r') as datos_poli:
+        grafo = Grafo()
+        #Aca falta la lectura del archivo
+        #supongo que ya se creo
+        while True:
+            comando = input() #Recibe el comando
+            if not comando: break
+            comando = comando.split() #Separa por espacios en blanco
+            if comando[0] not in COMANDOS:
+                print("Error: Comando invalido")
+                continue
+            aplicar_comando(grafo, comando)
+
+def aplicar_comando(grafo, comando):
+    """Aplica el comando recibido por parametro al grafo"""
+    index_comando = COMANDOS.index(comando[0]) #Ojo que son todos numeros
+    if comando == 0:
+        min_seguimientos(grafo, int(comando[1]), int(comando[2]))
+
+    elif index_comando == 1:
+        delincuentes = comando[1:-1] #Hago un slice para tener los delincuentes (agentes en cubierto)
+        delincuentes = [int(x) for x in delincuentes] #La transformo para que sean ints, sino son todos str
+        k = int(comando[-1])
+        persecucion(grafo, delincuentes, k)
+
+    elif index_comando == 2:
+        mas_imp(grafo, int(comando[1]))
+
+    elif index_comando == 3:
+        buscar_comunidades(grafo, int(comando[1]))
+
+    elif index_comando == 4:
+        divulgar(grafo, int(comando[1]), int(comando[2]))
+
+    elif index_comando == 5:
+        divulgar_ciclo(grafo, int(comando[1]), int(comando[2]))
+
+    else:
+        cfc(grafo)
 
 """
 Mínimos Seguimientos
