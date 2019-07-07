@@ -58,30 +58,48 @@ def main():
 
 def aplicar_comando(grafo, comando):
     """Aplica el comando recibido por parametro al grafo"""
-    index_comando = COMANDOS.index(comando[0]) #Ojo que son todos numeros
-    if comando == 0:
-        min_seguimientos(grafo, int(comando[1]), int(comando[2]))
+    index_comando = COMANDOS.index(comando[0])
+    if index_comando == 0:
+        if longitud_requerida(comando, 3):
+            min_seguimientos(grafo, int(comando[1]), int(comando[2]))
+        else print("Error: Parametros invalidos")
 
     elif index_comando == 1:
-        delincuentes = comando[1:-1] #Hago un slice para tener los delincuentes (agentes en cubierto)
-        delincuentes = [int(x) for x in delincuentes] #La transformo para que sean ints, sino son todos str
-        k = int(comando[-1])
-        persecucion(grafo, delincuentes, k)
+        if longitud_requerida(comando, 3):
+            delincuentes = comando[1:-1] #Hago un slice para tener los delincuentes (agentes en cubierto)
+            delincuentes = [int(x) for x in delincuentes] #La transformo para que sean ints, sino son todos str
+            k = int(comando[-1])
+            persecucion(grafo, delincuentes, k)
+        else print("Error: Parametros invalidos")
 
     elif index_comando == 2:
-        mas_imp(grafo, int(comando[1]))
+        if longitud_requerida(comando, 2):
+            mas_imp(grafo, int(comando[1]))
+        else print("Error: Parametros invalidos")
 
     elif index_comando == 3:
-        buscar_comunidades(grafo, int(comando[1]))
+        if longitud_requerida(comando, 2):
+            buscar_comunidades(grafo, int(comando[1]))
+        else print("Error: Parametros invalidos")
+
 
     elif index_comando == 4:
-        divulgar(grafo, int(comando[1]), int(comando[2]))
+        if longitud_requerida(comando, 3):
+            divulgar(grafo, int(comando[1]), int(comando[2])) 
+        else print("Error: Parametros invalidos")
 
     elif index_comando == 5:
-        divulgar_ciclo(grafo, int(comando[1]), int(comando[2]))
+        if longitud_requerida(comando, 3):
+            divulgar_ciclo(grafo, int(comando[1]), int(comando[2]))
+        else print("Error: Parametros invalidos")
 
     else:
         cfc(grafo)
+
+def longitud_requerida(lista, long_requerida):
+    '''Recibe por parametro una lista y un entero que representa la cantidad de parametros requeridos
+    .Devuelve true en caso de que sea la longitud correcta false en caso contrario.'''
+    return len(lista) >= long_requerida
 
 """
 Mínimos Seguimientos
@@ -95,7 +113,7 @@ Salida
       10 -> 57 -> 4
       30 -> 36 -> 38 -> 20 -> 45 -> 12
 """
-def min_seguimientos(grafo, salida, fin):
+"""def min_seguimientos(grafo, salida, fin):
     camino = dijstra_no_pesado(grafo, salida) #devuelve un diccionario, {llegada: via}, devuelve solo los vertices a los que puedo llegar desde salida
     voy_por = None
     if fin not in camino.keys(): #si no puedo llegar al final vuelvo
@@ -132,7 +150,7 @@ def dijkstra_no_pesado(grafo, origen):
               distancia[w] = distancia[v] + 1
               q.encolar[w, distancia[w]]
   return distancia, padre
-
+"""
 """
 Delincuentes más importantes
 
@@ -162,7 +180,7 @@ Por lo tanto, el comando pedido debe ser:
 def determinar_importantes(grafo, cantidad):
     ranks = pagerank(grafo)
     heap = []
-    for vertice, rank in ranks.ites():
+    for vertice, rank in ranks.items():
         heappush(heap, (rank, vertice))
         #un heap de minimos y me quedo con los cantidad maximos
     page_rank = heap[cantidad : ] #Slice para tener los k mas importantes, sigue siendo lista de tuplas, lo transformo en lista
@@ -182,7 +200,7 @@ def pagerank(grafo):
             for adyacente in adyacentes:
                 if adyacente not in iter_rank.keys(): iter_rank[adyacente] = 0
                 iter_rank[adyacente] += page_rank[vertice]/cant_adyacentes #el rank en esta iteracion
-        for vertice, rank in iter_rank.keys():  #No seria .items() ?
+        for vertice, rank in iter_rank.items():  #No seria .items() ?
             page_rank[vertice] = rank #guardo el resultado de la ultima iteracion
     return page_rank
 
@@ -208,17 +226,15 @@ Persecución rápida
     17 -> 35 -> 20
     19 -> 42
 """
-def persecucion(grafo, delincuentes, k): #Fijate como hacer que reciba muchos parametros
+def persecucion(grafo, delincuentes, k):
     '''Obtiene el camino mas corto de uno de los delincuentes pasados por parametro a uno de los k mas importantes'''
-    #supongo que es una lista despues modificar de ultima
     #Primero obtengo los delincuentes mas buscados
     mas_buscados = determinar_importantes(grafo, k) #Obtengo el diccionario de los k mas buscados quizas sea una lista
-    min_dist = 0   #Si le pasas esto a min distancia podes mejorar las cosas, porque si tu persecucion mas corta es 7 y vas por 8 cortas
+    min_dist = 0
     persecucion = [] #Lista utilizada para guardar como es la persecucion
 
     for agente in delincuentes: #Son agentes en cubierto
         camino, distancia = bfs(grafo, agente, 0, mas_buscados) #Camino seria el diccionario de padres
-        #Ahora tengo que ver cual es el minimo, bah en realidad cortaste supuestamente al chocar con un delincuente, ergo, el que este en el diccionario de caminos es el minimo
         delincuente = None #Me fijo el camino a que delincuente encontre
         for thief in mas_buscados:
             if thief in camino.keys():
