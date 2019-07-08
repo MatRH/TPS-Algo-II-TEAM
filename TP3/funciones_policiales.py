@@ -2,7 +2,7 @@ import heapq #Para poder utilizar el heap de python
 from collections import Counter # sirve para contar las apariciones de elementos en una lista
 COEF_COMUNIDADES = 0.5 #coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCIÓN DE COMUNIDADES
 COEF_RANK = 0.5#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
-
+from tdas_auxiliares import Cola, Pila
 #Funciones policiales
 def divulgar(grafo, delincuente, n):
     '''Imprime una lista con todos los delincuentes a los cuales les terminaria llegando un rumor
@@ -78,8 +78,33 @@ def mas_imp(grafo, k):
 	separador = ", "
 	print(separador.join(delincuentes_vip))
 
+def cfc(grafo):
+    visitados = set()
+    orden = {}
+    p = Pila()
+    s = Pila()
+    cfcs = []
+    en_cfs = set()
+    for v in grafo:
+        if v not in visitados:
+            orden[v] = 0
+            dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs)
+    return cfcs
 
-
+def divulgar_ciclo(grafo, origen, n):
+    '''Permite encontrar un camino simple que empiece y termine en el delincuente pasado
+    por parámetro, de largo n. En caso de no encontrarse un ciclo de ese largo y dicho
+    comienzo, imprimir No se encontro recorrido.'''
+    separador = " -> "
+    camino = [origen]
+    visitados = set()
+    rechazados = set()
+            
+    for w in grafo.adyacentes(origen):
+        if divulgar_ciclo_wrapper(grafo, origen, w, n, visitados, camino, rechazados):
+            print(separador.join(camino))
+            return
+    print("No se encontro recorrido")
 
 
 
@@ -121,3 +146,45 @@ def pagerank(grafo):
         for vertice, rank in iter_rank.items():  #No seria .items() ?
             page_rank[vertice] = rank #guardo el resultado de la ultima iteracion
     return page_rank
+
+def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
+    visitados.agregar(v)
+    s.apilar(v)
+    p.apilar(v)
+    for w in grafo.adyacentes(v):
+        if w not in visitados:
+            orden[w] = orden[v] + 1
+            dfs_cfc(grafo, w, visitados, orden, p, s, cfcs, en_cfcs)
+        elif w not in en_cfs:
+            while orden[p.ver_tope()] > orden[w]:
+                p.desapilar()
+
+    if p.ver_tope() == v:
+        p.desapilar()
+        z = None
+        nueva_cfc = []
+        while z != v:
+            z = s.desapilar()
+            en_cfs.agregar(z)
+            nueva_cfc.append(z)
+        cfcs.append(nueva_cfc)
+
+def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, visitados, camino, rechazados):
+    '''Devuelve True si se encontro un ciclo de largo n que comience en origen y finalice en el.
+    False en caso contrario'''
+    camino.append(adyacente)
+    if len(camino) - 1 == n:
+        if origen in grafo.adyacentes(adyacente):
+            return True
+        camino.pop()
+        return False
+
+    #Faltarian mas condiciones de poda
+    
+    for w in grafo.adyacentes(adyacente):
+        if w in rechazados: continue
+        divulgar_ciclo_wrapper(grafo, origen, w, n, visitados, camino, rechazados)
+
+    if len(grafo.adyacentes(adyacente)) == 0: rechazados.add(adyacente)
+    camino.pop() #Saco el vertice ya que no me manda por el camino correcto
+    return False
