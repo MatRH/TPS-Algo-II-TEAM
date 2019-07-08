@@ -9,7 +9,8 @@ def divulgar(grafo, delincuente, n):
     que comienza en el delincuente pasado por parametro, y a lo sumo puede realizar n saltos'''
     camino = bfs(grafo, delincuente, None, n) #esto me da dos diccionarios, el de distancias no necesito
     separador = ', '
-    print(separador.join(camino.keys)) #magia no se si anda
+    camino.pop(delincuente) #Es O(n) I dont like this hace una funcion de impresion asi te lo sacas de enciam
+    print(separador.join(camino.keys())) #magia no se si anda
 
 def buscar_comunidades(grafo, n):
     resultado = ""
@@ -45,35 +46,31 @@ def min_seguimientos(grafo, origen, destino):
     if destino not in camino:
         print("Seguimiento imposible")
     else:
-        camino_final = construir_camino(grafo, destino) #Reconstruyo el camino
-        imprimir_camino(camino_final, " -> ")
+        camino_final = construir_camino(camino, destino) #Reconstruyo el camino
+        print(" -> ".join(camino_final))
 
 def persecucion(grafo, delincuentes, k):
-    '''Obtiene el camino mas corto de uno de los delincuentes pasados por parametro a uno de los k mas importantes'''
-    #Primero obtengo los delincuentes mas buscados
-    mas_buscados = determinar_importantes(grafo, k) #Obtengo el diccionario de los k mas buscados quizas sea una lista
+    '''Recibe por parametro un grafo, una lista de delincuentes (agentes en cubierto),
+    y un numero k que representa la cantidad de delincuentes importantes.
+    Imprime la persecucion que sea mas rapida (camino minimo) desde uno de los
+    agentes en cubierto hacia uno de los k delincuentes'''
+    mas_buscados = determianr_importantes(grafo, k) #Devuelve un set con los mas importantes
     min_dist = 0
-    persecucion = [] #Lista utilizada para guardar como es la persecucion   #Me conviene que mas buscados sea un set asi es mas rapido buscasr
-    camino_rapido, agente_requerido, delincuente = None, None, None
-
-    for agente in delincuentes: #Son agentes en cubierto
-        camino, distancia = bfs(grafo, agente, None, min_dist, mas_buscados) #Camino seria el diccionario de padres
-        #Cuando llegas aca encontras el camino minimo a un chorro o no
-        for thief in mas_buscados:
-            if thief in camino.keys():
-                if min_dist == 0 or distancia[thief] <= min_dist:   #FALTA AGREGAR QUE SI SON DISTANCIAS IGUALES, ME QUEDO CON EL QUE SEA EL CHORRO MAS IMPORTANTE
-                    delincuente = thief
-                    min_dist = distancia[thief]
-                    camino_rapido = camino
-                    agente_requerido = agente
-                break #Creo que con este break salgo del for de mas adentro
-
+    camino_minimo, delincuente = None, None #Delincuente es para saber hacia quien es la persecucion
+    for agente in delincuentes:
+        camino, distancia, thief = bfs(grafo, agente, None, min_dist, mas_buscados)
+        #Encontraste un camino a thief, te fijas si actualizas camino minimo
+        if thief == None: continue #Desde el agente pasado no encontre un camino a uno de los chorros
+        if min_dist == 0 or distancia < min_dist or distancia == min_dist and thie > delincuente:
+            min_dist = distancia
+            camino_minimo = camino
+            delincuente = thief  #Guardas los datos de la persecucion hallada
+    #Finalizado el for de agentes en cubierto debo reconstruir el camino
     if delincuente != None:
-        #Si el delincuente es distinto de None quiere decir que encontre un camino para llegar al chorro
-        persecucion = construir_camino(camino_rapido, agente_requerido, delincuente)
-    	imprimir_camino(persecucion, ' -> ')
-
-    else print("Error: Seguimiento imposible")
+        persecucion = construir_camino(camino_minimo, delincuente)
+        separador = " -> "
+        print(separador.join(persecucion))
+    else: print("Error: Seguimiento imposible")
 
 def mas_imp(grafo, k):
 	"""Imprime los k delincuentes mas importantes"""
@@ -87,22 +84,16 @@ def mas_imp(grafo, k):
 
 
 #*************************************FUNCIONES AUXILIARES************************************************
-def construir_camino(camino, agente, delincuente):
+def construir_camino(camino, delincuente):
     '''Reconstruye el camino desde el agente hacia el delincuente con la ayuda del diccionario pasado por parametro.
     Devuelve una lista con dicho camino'''
     path = []
-    path.append(delincuente)
+    path.append(str(delincuente))
     while camino[delincuente] != None:
-        path.append(camino[delincuente])
+        path.append(str(camino[delincuente]))
         delincuente = camino[delincuente] #actualizo el delincuente, o sea, voy hacia atras
 
-    return path[::-1] #Invierto el orden para tener el orden correcto
-
-def imprimir_camino(lista, formato):
-    '''Recibe una lista, y un formato, que es como separar a los elementos de la lista'''
-    #debo mapear
-    lista = [str(x) for x in lista] #Creo que asi se pasaba a cadenas todos los elementos que contiene
-    print(formato.join(lista))
+    return path[::-1] #Invierto la lista
 
 def determinar_importantes(grafo, cantidad):
     ranks = pagerank(grafo)
