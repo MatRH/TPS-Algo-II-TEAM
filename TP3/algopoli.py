@@ -42,11 +42,15 @@ COMANDOS = ["min_seguimientos", "persecucion", "mas_imp", "comunidades", "divulg
 def main():
     argumentos = len(sys.argv) #Me da la cantidad de argumentos recibidos
     if argumentos != 2: raise Exception("Error: Cantidad de parametros incorrecta")
-    file_name = argumentos[1]
+    file_name = sys.argv[1]
     with open(file_name, 'r') as datos_poli:
         grafo = Grafo()
-        #Aca falta la lectura del archivo
-        #supongo que ya se creo
+        for linea in datos_poli:
+            v, w = linea.split()
+            grafo.agregar_vertice(int(v))
+            grafo.agregar_vertice(int(w))
+            grafo.agregar_arista(v, 0, w)
+        #Grafo creado
         while True:
             comando = input() #Recibe el comando
             if not comando: break
