@@ -1,5 +1,4 @@
-
-# -*- coding: utf-8 -*-
+#!/usr/bin/python3
 """Importante: En caso de recibir un error FileNotFoundError: [Errno 2] No such
  file or directory: './algopoli': './algopoli', tener en cuenta que para el caso
   de enviar código escrito en Python es necesario además indicar la ruta del
@@ -89,7 +88,7 @@ def aplicar_comando(grafo, comando):
 
     elif index_comando == 4:
         if longitud_requerida(comando, 3):
-            divulgar(grafo, int(comando[1]), int(comando[2])) 
+            divulgar(grafo, int(comando[1]), int(comando[2]))
         else print("Error: Parametros invalidos")
 
     elif index_comando == 5:
@@ -330,7 +329,9 @@ Ciclo de largo n
 
     74 -> 21 -> 81 -> 18 -> 42 -> 74
     19 -> 34 -> 12 -> 33 -> 54 -> 28 -> 79 -> 71 -> 57 -> 41 -> 56 -> 19
+"""
 
+"""
 Componentes Fuertemente Conexas
 
 Se debe leer el apunte sobre componentes fuertemente conexas.
