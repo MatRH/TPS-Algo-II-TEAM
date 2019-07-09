@@ -7,10 +7,9 @@ from tdas_auxiliares import Cola, Pila
 def divulgar(grafo, delincuente, n):
     '''Imprime una lista con todos los delincuentes a los cuales les terminaria llegando un rumor
     que comienza en el delincuente pasado por parametro, y a lo sumo puede realizar n saltos'''
-    camino = bfs(grafo, delincuente, None, n) #esto me da dos diccionarios, el de distancias no necesito
-    separador = ', '
-    camino.pop(delincuente) #Es O(n) I dont like this hace una funcion de impresion asi te lo sacas de enciam
-    print(separador.join(camino.keys())) #magia no se si anda
+    destinatarios = bfs(grafo, delincuente, None, n) #esto me da dos diccionarios, el de distancias no necesito
+    resultado = [str(ladron) for ladron in destinatarios.keys() if ladron != delincuente] #Filtro porque el delincuente de donde arranco el rumor no debe figurar
+    print(", ".join(resultado))
 
 def buscar_comunidades(grafo, n):
     resultado = ""
@@ -74,7 +73,7 @@ def persecucion(grafo, delincuentes, k):
 
 def mas_imp(grafo, k):
 	"""Imprime los k delincuentes mas importantes"""
-	delincuentes_vip = [x for x in determinar_importantes(grafo, k)] #Lista por comprension asi quedan en formato str
+	delincuentes_vip = [str(x) for x in determinar_importantes(grafo, k)] #Lista por comprension asi quedan en formato str
 	separador = ", "
 	print(separador.join(delincuentes_vip))
 
