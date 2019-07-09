@@ -23,7 +23,7 @@ class Grafo:
         if vertice not in vertices.keys(): #agrego el vértice si no existe
             adyacentes = {}
             vertices[vertice] = adyacentes
-            self.cantidad_vertices++
+            self.cantidad_vertices+= 1
 
         adyacentes = vertices[vertice] #tomo sus aristas
         if (aristas):    #si tengo adyacentes los cargo
@@ -35,7 +35,7 @@ class Grafo:
         if salida not in vertices.keys():
             adyacentes = {}
             vertices[salida] = adyacentes
-            self.cantidad_vertices++
+            self.cantidad_vertices+= 1
         adyacentes = vertices[salida]
         adyacentes[llegada] = peso
 
@@ -48,7 +48,7 @@ class Grafo:
             if salida not in vertices.keys():
                 adyacentes = {}
                 vertices[salida] = adyacentes
-                self.cantidad_vertices++
+                self.cantidad_vertices+= 1
             adyacentes = vertices[salida]
             adyacentes[llegada] = peso
 

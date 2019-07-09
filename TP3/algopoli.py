@@ -308,7 +308,7 @@ def buscar_comunidades(grafo, n):
             for vertice, label in labels:
                 if etiqueta == label:
                     resultado += "{}, ".format(vertice)#agrego al resultado los vertices que pertenecen a la comunidad
-            num_comunidad++
+            num_comunidad += 1
     print(resultado)
 
 

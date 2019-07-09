@@ -98,7 +98,7 @@ def divulgar_ciclo(grafo, origen, n):
     camino = [origen]
     visitados = set()
     rechazados = set()
-            
+
     for w in grafo.adyacentes(origen):
         if divulgar_ciclo_wrapper(grafo, origen, w, n, visitados, camino, rechazados):
             print(separador.join(camino))
@@ -123,9 +123,9 @@ def determinar_importantes(grafo, cantidad):
     ranks = pagerank(grafo)
     heap = []
     resultado = []
-    for vertice, rank in ranks.items(): 
+    for vertice, rank in ranks.items():
         heap.append((rank, vertice))
-    
+
     heapq.heapify(heap) #Me da un heap de minimos
     vip_thief = heapq.nlargest(cantidad, heap)  #Me devuelve los K mas buscados en una lista de tuplas
     for rank, thief in vip_thief:
@@ -175,7 +175,7 @@ def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
 def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, visitados, camino, rechazados):
     '''Devuelve True si se encontro un ciclo de largo n que comience en origen y finalice en el.
     False en caso contrario'''
-    camino.append(adyacente)
+    camino.append(adyacente)#cuando inicia agrega null?
     if len(camino) - 1 == n:
         if origen in grafo.adyacentes(adyacente):
             return True
@@ -183,7 +183,7 @@ def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, visitados, camino, recha
         return False
 
     #Faltarian mas condiciones de poda
-    
+
     for w in grafo.adyacentes(adyacente):
         if w in rechazados: continue
         divulgar_ciclo_wrapper(grafo, origen, w, n, visitados, camino, rechazados)
