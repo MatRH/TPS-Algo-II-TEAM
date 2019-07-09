@@ -74,7 +74,7 @@ def persecucion(grafo, delincuentes, k):
 
 def mas_imp(grafo, k):
 	"""Imprime los k delincuentes mas importantes"""
-	delincuentes_vip = determinar_importantes(grafo, k) #TE FALTA PASARLO A STRINGS, creo
+	delincuentes_vip = [x for x in determinar_importantes(grafo, k)] #Lista por comprension asi quedan en formato str
 	separador = ", "
 	print(separador.join(delincuentes_vip))
 
@@ -123,12 +123,16 @@ def construir_camino(camino, delincuente):
 def determinar_importantes(grafo, cantidad):
     ranks = pagerank(grafo)
     heap = []
-    for vertice, rank in ranks.items():
-        heappush(heap, (rank, vertice))
-        #un heap de minimos y me quedo con los cantidad maximos
-    page_rank = heap[cantidad : ] #Slice para tener los k mas importantes, sigue siendo lista de tuplas, lo transformo en lista
-    page_rank = [delincuente for i, delincuente in page_rank] #Lista por comprension, creo que anda
-    return page_rank
+    resultado = []
+    for vertice, rank in ranks.items(): 
+        heap.append((rank, vertice))
+    
+    heapq.heapify(heap) #Me da un heap de minimos
+    vip_thief = heapq.nlargest(cantidad, heap)  #Me devuelve los K mas buscados en una lista de tuplas
+    for rank, thief in vip_thief:
+        resultado.append(thief)  #Quedaran ordenados con los mas buscados al comienzo de la lista
+
+    return resultado[::-1] #Asi me quedan ordenados de menor a mayor en orden de busqueda
 
 def pagerank(grafo):
     max_iter = grafo.cantidad()*COEF_RANK
