@@ -84,7 +84,7 @@ class Grafo:
         vertices = self.vertices
         if vertice not in vertices.keys(): return
         del vertices[vertice]
-        self.cantidad_vertices--
+        self.cantidad_vertices -= 1
 
     def __str__(self):
         vertices = self.vertices
@@ -95,24 +95,11 @@ class Grafo:
             str += "}\n"
         return str
 
-    def cantidad_aristas():#no se si vale la pena llevar la cuenta para que sea O(1) o recorrer en el momento
+    def cantidad_aristas(self):#no se si vale la pena llevar la cuenta para que sea O(1) o recorrer en el momento
+        cantidad = 0
+        for vertice, adyacentes in self.vertices.items():
+            cantidad += len(adyacentes.keys())
+        return cantidad
 
-    def vertices():#devuelve una lista con todos los vertices
-
-def test:
-    print ("Creo un grafo")
-    grafo = Grafo() #creo un grafo
-    print ("La cantidad de vertices es %d", grafo.cantidad_vertices())
-    print (" lo imprimo por pantalla")
-    print (grafo)
-    print ("Agrego un vertice")
-    vertice1 = v1
-    vertice2 = v2
-    vertice3 = v3
-    vertice4 = v4
-    grafo.agregar_vertice(vertice1)
-    print ("La cantidad de vertices es %d", grafo.cantidad_vertices())
-    print ("imprimo el grafo")
-    print (grafo)
-
-test()
+    def vertices(self):#devuelve una lista con todos los vertices
+        return self.vertices.keys()

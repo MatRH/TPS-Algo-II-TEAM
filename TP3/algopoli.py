@@ -7,6 +7,7 @@
 import sys #para leer parametros de la linea de comando
 import heapq #Para poder utilizar el heap de python
 from collections import Counter # sirve para contar las apariciones de elementos en una lista
+from grafo import Grafo
 COEF_COMUNIDADES = 0.5 #coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCIÓN DE COMUNIDADES
 COEF_RANK = 0.5#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
 COMANDOS = ["min_seguimientos", "persecucion", "mas_imp", "comunidades", "divulgar", "divulgar_ciclo", "cfc"]
@@ -32,7 +33,7 @@ def main():
                 print("Error: Comando invalido")
                 continue
             aplicar_comando(grafo, comando)
-main()
+
 def aplicar_comando(grafo, comando):
     """Aplica el comando recibido por parametro al grafo"""
     index_comando = COMANDOS.index(comando[0])
@@ -343,3 +344,5 @@ def imprimir_camino(lista, formato):
     #debo mapear
     lista = [str(x) for x in lista] #Creo que asi se pasaba a cadenas todos los elementos que contiene
     print(formato.join(lista))
+
+main()
