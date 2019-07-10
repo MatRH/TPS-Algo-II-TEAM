@@ -3,11 +3,13 @@ from collections import Counter # sirve para contar las apariciones de elementos
 COEF_COMUNIDADES = 0.5 #coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCIÓN DE COMUNIDADES
 COEF_RANK = 0.5#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
 from tdas_auxiliares import Cola, Pila
+from bfs import bfs
 #Funciones policiales
 def divulgar(grafo, delincuente, n):
     '''Imprime una lista con todos los delincuentes a los cuales les terminaria llegando un rumor
     que comienza en el delincuente pasado por parametro, y a lo sumo puede realizar n saltos'''
-    destinatarios = bfs(grafo, delincuente, None, n) #esto me da dos diccionarios, el de distancias no necesito
+    destinatarios, a, b = bfs(grafo, delincuente, None, n) #esto me da dos diccionarios, el de distancias no necesito
+    print(destinatarios.keys())
     resultado = [str(ladron) for ladron in destinatarios.keys() if ladron != delincuente] #Filtro porque el delincuente de donde arranco el rumor no debe figurar
     print(", ".join(resultado))
 
