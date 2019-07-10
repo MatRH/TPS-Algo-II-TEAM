@@ -1,5 +1,5 @@
 from tdas_auxiliares import Cola
-def bfs(grafo, origen, destino = None, n = 0, lista = None):
+def bfs(grafo, origen, destino = None, n = 0, set_datos = None):
 	'''Realiza un recorrido BFS sobre el grafo pasado por parametro.
 	Devuelve un diccionario con los padres de los vertices, sus respectivas distancias al origen,
 	y el vertice que corta el ciclo, en caso de haber'''
@@ -18,7 +18,7 @@ def bfs(grafo, origen, destino = None, n = 0, lista = None):
 				padre[w] = vertice
 				distancia[w] = distancia[vertice] + 1
 				visitados.add(w) 
-				if (lista != None and w in lista) or (destino != None and w == destino): #Condicion de corte extra
+				if (set_datos != None and w in set_datos) or (destino != None and w == destino): #Condicion de corte extra
 					return padre, distancia[w], w
 				if n == 0 or distancia[w] < n: #Tengo que chequear si ya me pase de la cantidad de saltos
 					q.encolar(w)

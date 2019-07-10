@@ -34,7 +34,7 @@ def buscar_comunidades(grafo, n):
             for vertice, label in labels:
                 if etiqueta == label:
                     resultado += "{}, ".format(vertice)#agrego al resultado los vertices que pertenecen a la comunidad
-            num_comunidad++
+            num_comunidad += 1
     print(resultado)
 
 def min_seguimientos(grafo, origen, destino):
@@ -53,14 +53,14 @@ def persecucion(grafo, delincuentes, k):
     y un numero k que representa la cantidad de delincuentes importantes.
     Imprime la persecucion que sea mas rapida (camino minimo) desde uno de los
     agentes en cubierto hacia uno de los k delincuentes'''
-    mas_buscados = determianr_importantes(grafo, k) #Devuelve un set con los mas importantes
+    mas_buscados, mas_buscados_set = determianr_importantes(grafo, k) #Devuelve un set con los mas importantes
     min_dist = 0
     camino_minimo, delincuente = None, None #Delincuente es para saber hacia quien es la persecucion
     for agente in delincuentes:
-        camino, distancia, thief = bfs(grafo, agente, None, min_dist, mas_buscados)
+        camino, distancia, thief = bfs(grafo, agente, None, min_dist, mas_buscados_set)
         #Encontraste un camino a thief, te fijas si actualizas camino minimo
         if thief == None: continue #Desde el agente pasado no encontre un camino a uno de los chorros
-        if min_dist == 0 or distancia < min_dist or distancia == min_dist and thie > delincuente:
+        if min_dist == 0 or distancia < min_dist or distancia == min_dist and mas_buscados.index(thief) > mas_buscados.index(delincuente):
             min_dist = distancia
             camino_minimo = camino
             delincuente = thief  #Guardas los datos de la persecucion hallada
@@ -96,11 +96,12 @@ def divulgar_ciclo(grafo, origen, n):
     comienzo, imprimir No se encontro recorrido.'''
     separador = " -> "
     camino = [origen]
-    visitados = set()
     rechazados = set()
 
     for w in grafo.adyacentes(origen):
-        if divulgar_ciclo_wrapper(grafo, origen, w, n, visitados, camino, rechazados):
+        if divulgar_ciclo_wrapper(grafo, origen, w, n, camino, rechazados):
+            camino.append(origen)
+            camino = [str(x) for x in camino]
             print(separador.join(camino))
             return
     print("No se encontro recorrido")
@@ -120,9 +121,11 @@ def construir_camino(camino, delincuente):
     return path[::-1] #Invierto la lista
 
 def determinar_importantes(grafo, cantidad):
+    '''Determina los k (cantidad) delincuentes mas importantes y devuelve una lista y un set con ellos'''
     ranks = pagerank(grafo)
     heap = []
     resultado = []
+    set_datos = set()
     for vertice, rank in ranks.items():
         heap.append((rank, vertice))
 
@@ -130,8 +133,10 @@ def determinar_importantes(grafo, cantidad):
     vip_thief = heapq.nlargest(cantidad, heap)  #Me devuelve los K mas buscados en una lista de tuplas
     for rank, thief in vip_thief:
         resultado.append(thief)  #Quedaran ordenados con los mas buscados al comienzo de la lista
+        set_datos.add(thief)
 
-    return resultado[::-1] #Asi me quedan ordenados de menor a mayor en orden de busqueda
+
+    return resultado[::-1], set_datos #Asi me quedan ordenados de menor a mayor en orden de busqueda
 
 def pagerank(grafo):
     max_iter = grafo.cantidad()*COEF_RANK
@@ -146,7 +151,7 @@ def pagerank(grafo):
             for adyacente in adyacentes:
                 if adyacente not in iter_rank.keys(): iter_rank[adyacente] = 0
                 iter_rank[adyacente] += page_rank[vertice]/cant_adyacentes #el rank en esta iteracion
-        for vertice, rank in iter_rank.items():  #No seria .items() ?
+        for vertice, rank in iter_rank.items(): 
             page_rank[vertice] = rank #guardo el resultado de la ultima iteracion
     return page_rank
 
@@ -172,22 +177,31 @@ def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
             nueva_cfc.append(z)
         cfcs.append(nueva_cfc)
 
-def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, visitados, camino, rechazados):
+def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, camino, rechazados):
     '''Devuelve True si se encontro un ciclo de largo n que comience en origen y finalice en el.
     False en caso contrario'''
-    camino.append(adyacente)#cuando inicia agrega null?
-    if len(camino) - 1 == n:
+    if n == 1 and origen == adyacente: return True #Para evitar agregarlo a la lista tres veces cuando nos piden largo 1
+
+    camino.append(adyacente)
+    if len(camino) == n: #Siempre en la posicion n estara el ultimo vertice que tiene que tener como adyacente al origen
         if origen in grafo.adyacentes(adyacente):
             return True
-        camino.pop()
-        return False
-
-    #Faltarian mas condiciones de poda
+        else:
+            camino.pop() #Quito el elemento que agregue recien
+            return False
 
     for w in grafo.adyacentes(adyacente):
-        if w in rechazados: continue
-        divulgar_ciclo_wrapper(grafo, origen, w, n, visitados, camino, rechazados)
+        if w in rechazados or w in camino: continue #Si esta en rechazados o en el camino, lo descarto (no tendria camino simple)
+        if not divulgar_ciclo_wrapper(grafo, origen, w, n, camino, rechazados): 
+            continue #si entro al if, significa que con ese vertice no llegue, pruebo con otro
+        else: return True #Si encontre un camino el if de arriba dara True y por ende entrare a este else
 
-    if len(grafo.adyacentes(adyacente)) == 0: rechazados.add(adyacente)
-    camino.pop() #Saco el vertice ya que no me manda por el camino correcto
+    if len(grafo.adyacentes(adyacente)) == 0: rechazados.add(adyacente) #Agrego al set de rechazados
+    camino.pop() #si Probe con todos los adyacentes y ninguno dio resultado saco el elemento de la lista y vuelvo para atras
     return False
+
+
+'''Cosas que se me ocurren: 
+- Pasarse del largo -> Podar (1)
+- Llegar al largo en cuestion y que no sea con el vértice destino (el mismo del origen) -> cortar (2)
+- Llegamos al vértice destino fuera del largo n -> Cortar (3)'''
