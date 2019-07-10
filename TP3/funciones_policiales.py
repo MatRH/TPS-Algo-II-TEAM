@@ -9,7 +9,6 @@ def divulgar(grafo, delincuente, n):
     '''Imprime una lista con todos los delincuentes a los cuales les terminaria llegando un rumor
     que comienza en el delincuente pasado por parametro, y a lo sumo puede realizar n saltos'''
     destinatarios, a, b = bfs(grafo, delincuente, None, n) #esto me da dos diccionarios, el de distancias no necesito
-    print(destinatarios.keys())
     resultado = [str(ladron) for ladron in destinatarios.keys() if ladron != delincuente] #Filtro porque el delincuente de donde arranco el rumor no debe figurar
     print(", ".join(resultado))
 

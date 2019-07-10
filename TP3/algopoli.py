@@ -19,7 +19,7 @@ def main():
             v, w = linea.split()
             grafo.agregar_vertice(int(v))
             grafo.agregar_vertice(int(w))
-            grafo.agregar_arista(v, 0, w)
+            grafo.agregar_arista(int(v), 0, int(w))
         #Grafo creado
         while True:
             print("Ingrese comando")
