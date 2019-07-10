@@ -4,39 +4,13 @@
   de enviar código escrito en Python es necesario además indicar la ruta del
   intérprete. Esto puede hacerse agregando como primera línea del archivo principal
   (en el ejemplo, sería algopoli.py) la línea: #!/usr/bin/python3."""
-  """Datos disponibles
-
-Se cuenta con un set de datos1 de los mensajes, comunicaciones, encuentros, etc.
- entre los mencionados delincuentes (y agentes encubiertos). Solo se han dejado
- los números de identificación de dichos delincuentes, sin ningún dato personal.
- El formato del archivo es un tsv (los campos se separan por tabuladores):
-
-id_vertice1	id_vertice2
-id_vertice1	id_vertice3
-...
-id_vertice2	id_vertice1
-id_vertice2	id_vertice3
-...
-id_vertice3	id_vertice5
-
-Adicionalmente, se cuenta con el siguiente set mínimo de pruebas inventado,
-por lo que no representa un escenario real donde valga la pena realizar todas
-las operaciones pedidas, pero puede servir de prueba, y se utilizará este set
-de datos para los ejemplos. Además se deja un script generador para que se puedan
-realizar más sets de prueba (aleatorios).
-
-Que un delincuente se comunique con otro no implica que también suceda la recíproca.
-Se ha visto también que hay delincuentes que se han enviado mensajes a sí mismos.
- Téngase esto en cuenta a la hora de procesar los datos.
-Aunque dos delincuentes se comuniquen 1, 2 o n veces, la comunicación sólo aparece
- una vez en el archivo (que quiere decir que se hace esa comunicación al menos una vez).
-"""
 import sys #para leer parametros de la linea de comando
 import heapq #Para poder utilizar el heap de python
 from collections import Counter # sirve para contar las apariciones de elementos en una lista
 COEF_COMUNIDADES = 0.5 #coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCIÓN DE COMUNIDADES
 COEF_RANK = 0.5#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
 COMANDOS = ["min_seguimientos", "persecucion", "mas_imp", "comunidades", "divulgar", "divulgar_ciclo", "cfc"]
+
 
 def main():
     argumentos = len(sys.argv) #Me da la cantidad de argumentos recibidos
@@ -58,14 +32,14 @@ def main():
                 print("Error: Comando invalido")
                 continue
             aplicar_comando(grafo, comando)
-
+main()
 def aplicar_comando(grafo, comando):
     """Aplica el comando recibido por parametro al grafo"""
     index_comando = COMANDOS.index(comando[0])
     if index_comando == 0:
         if longitud_requerida(comando, 3):
             min_seguimientos(grafo, int(comando[1]), int(comando[2]))
-        else print("Error: Parametros invalidos")
+        else: print("Error: Parametros invalidos")
 
     elif index_comando == 1:
         if longitud_requerida(comando, 3):
@@ -73,28 +47,28 @@ def aplicar_comando(grafo, comando):
             delincuentes = [int(x) for x in delincuentes] #La transformo para que sean ints, sino son todos str
             k = int(comando[-1])
             persecucion(grafo, delincuentes, k)
-        else print("Error: Parametros invalidos")
+        else: print("Error: Parametros invalidos")
 
     elif index_comando == 2:
         if longitud_requerida(comando, 2):
             mas_imp(grafo, int(comando[1]))
-        else print("Error: Parametros invalidos")
+        else: print("Error: Parametros invalidos")
 
     elif index_comando == 3:
         if longitud_requerida(comando, 2):
             buscar_comunidades(grafo, int(comando[1]))
-        else print("Error: Parametros invalidos")
+        else: print("Error: Parametros invalidos")
 
 
     elif index_comando == 4:
         if longitud_requerida(comando, 3):
             divulgar(grafo, int(comando[1]), int(comando[2]))
-        else print("Error: Parametros invalidos")
+        else: print("Error: Parametros invalidos")
 
     elif index_comando == 5:
         if longitud_requerida(comando, 3):
             divulgar_ciclo(grafo, int(comando[1]), int(comando[2]))
-        else print("Error: Parametros invalidos")
+        else: print("Error: Parametros invalidos")
 
     else:
         cfc(grafo)
@@ -207,11 +181,6 @@ def pagerank(grafo):
             page_rank[vertice] = rank #guardo el resultado de la ultima iteracion
     return page_rank
 
-def buscar_ciclo():
-def cconexas_fuertes():
-main()
-
-
 """
 Persecución rápida
 
@@ -241,7 +210,7 @@ def persecucion(grafo, delincuentes, k):
         delincuente = None #Me fijo el camino a que delincuente encontre
         for thief in mas_buscados:
             if thief in camino.keys():
-                if min_dist == 0 or distancia[thief] <= min_dist and : #Si pasa esto, encontre un agente que tiene una persecucion faster
+                if min_dist == 0 or distancia[thief] <= min_dist: #Si pasa esto, encontre un agente que tiene una persecucion faster
                     delincuente = thief
                     min_dist = distancia[thief]
                 break #Creo que con este break salgo del for de mas adentro
@@ -367,7 +336,7 @@ def construir_camino(camino, agente, delincuente):
         path.append(camino[delincuente])
         delincuente = camino[delincuente] #actualizo el delincuente, o sea, voy hacia atras
 
-    return path[::-1] #Invierto el orden para tener el orden correcto
+    return path[:-1] #Invierto el orden para tener el orden correcto
 
 def imprimir_camino(lista, formato):
     '''Recibe una lista, y un formato, que es como separar a los elementos de la lista'''
