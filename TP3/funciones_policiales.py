@@ -23,13 +23,8 @@ def buscar_comunidades(grafo, n):
     for v in vertices: #le asigno a cada vertice como etiqueta su posicion en la lista de vertices
         labels[v] = i
         i += 1
-    print("Cantidad de iteraciones : {}".format(iteraciones))#DEBUG
     for j in range(iteraciones):
-        print("Iteración número {}".format(j))#DEBUG
-        #db_value = 0#DEBUG
         for vertice in vertices:
-            #print("vertice número {}".format(db_value))#DEBUG
-            #db_value += 1 #DEBUG
             entrantes_v = entran[vertice] #set de vertices entrantes a v
             if len(entrantes_v) == 0: continue
             max_label = max(entrantes_v)
@@ -61,7 +56,7 @@ def persecucion(grafo, delincuentes, k):
     y un numero k que representa la cantidad de delincuentes importantes.
     Imprime la persecucion que sea mas rapida (camino minimo) desde uno de los
     agentes en cubierto hacia uno de los k delincuentes'''
-    mas_buscados, mas_buscados_set = determianr_importantes(grafo, k) #Devuelve un set con los mas importantes
+    mas_buscados, mas_buscados_set = determinar_importantes(grafo, k) #Devuelve un set con los mas importantes
     min_dist = 0
     camino_minimo, delincuente = None, None #Delincuente es para saber hacia quien es la persecucion
     for agente in delincuentes:
@@ -146,12 +141,12 @@ def determinar_importantes(grafo, cantidad):
 
 def pagerank(grafo):
     max_iter = int(grafo.cantidad_vertices()*COEF_RANK)
-    print ("Cantidad de iteraciones a realizar : {}".format(max_iter))
+    #print ("Cantidad de iteraciones a realizar : {}".format(max_iter))
     page_rank = {}
     for vertice in grafo.vertices():
         page_rank[vertice] = 1/grafo.cantidad_vertices()
     for i in range(max_iter):
-        print("Número de iteración: {}".format(i))
+        #print("Número de iteración: {}".format(i))
         iter_rank = {}
         for vertice in grafo.vertices():
             adyacentes = grafo.adyacentes(vertice)
@@ -189,7 +184,7 @@ def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, camino, rechazados):
     '''Devuelve True si se encontro un ciclo de largo n que comience en origen y finalice en el.
     False en caso contrario'''
     if n == 1 and origen == adyacente: return True #Para evitar agregarlo a la lista tres veces cuando nos piden largo 1
-
+    if n != 1 and origen == adyacente: return False #Porque sino va a pasar dos veces por un vertice si esta dirigido a si mismo
     camino.append(adyacente)
     if len(camino) == n: #Siempre en la posicion n estara el ultimo vertice que tiene que tener como adyacente al origen
         if origen in grafo.adyacentes(adyacente):

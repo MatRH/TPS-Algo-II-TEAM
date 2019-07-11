@@ -42,9 +42,9 @@ def aplicar_comando(grafo, comando):
 
     elif index_comando == 1:
         if longitud_requerida(comando, 3):
-            delincuentes = comando[1:-1] #Hago un slice para tener los delincuentes (agentes en cubierto)
+            delincuentes = comando[1].split(",")
             delincuentes = [int(x) for x in delincuentes] #La transformo para que sean ints, sino son todos str
-            k = int(comando[-1])
+            k = int(comando[2])
             persecucion(grafo, delincuentes, k)
         else: print("Error: Parametros invalidos")
 
