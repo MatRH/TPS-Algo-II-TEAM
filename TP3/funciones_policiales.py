@@ -8,8 +8,8 @@ from bfs import bfs
 def divulgar(grafo, delincuente, n):
     '''Imprime una lista con todos los delincuentes a los cuales les terminaria llegando un rumor
     que comienza en el delincuente pasado por parametro, y a lo sumo puede realizar n saltos'''
-    destinatarios, a, b = bfs(grafo, delincuente, None, n) #esto me da dos diccionarios, el de distancias no necesito
-    resultado = [str(ladron) for ladron in destinatarios.keys() if ladron != delincuente] #Filtro porque el delincuente de donde arranco el rumor no debe figurar
+    destinatarios = bfs(grafo, delincuente, None, n) #esto me da una tupla con dos diccionarios
+    resultado = [str(ladron) for ladron in destinatarios[0].keys() if ladron != delincuente] #Filtro porque el delincuente de donde arranco el rumor no debe figurar
     print(", ".join(resultado))
 
 def buscar_comunidades(grafo, n):
@@ -67,22 +67,20 @@ def persecucion(grafo, delincuentes, k):
         camino, distancia, thief = bfs(grafo, agente, None, min_dist, mas_buscados_set)
         #Encontraste un camino a thief, te fijas si actualizas camino minimo
         if thief == None: continue #Desde el agente pasado no encontre un camino a uno de los chorros
-        if min_dist == 0 or distancia < min_dist or distancia == min_dist and mas_buscados.index(thief) > mas_buscados.index(delincuente):
+        if min_dist == 0 or distancia < min_dist or distancia == min_dist and mas_buscados.index(thief) < mas_buscados.index(delincuente):
             min_dist = distancia
             camino_minimo = camino
             delincuente = thief  #Guardas los datos de la persecucion hallada
     #Finalizado el for de agentes en cubierto debo reconstruir el camino
     if delincuente != None:
         persecucion = construir_camino(camino_minimo, delincuente)
-        separador = " -> "
-        print(separador.join(persecucion))
+        print(" -> ".join(persecucion))
     else: print("Error: Seguimiento imposible")
 
 def mas_imp(grafo, k):
 	"""Imprime los k delincuentes mas importantes"""
 	delincuentes_vip = [str(x) for x in determinar_importantes(grafo, k)[0]] #Lista por comprension asi quedan en formato str
-	separador = ", "
-	print(separador.join(delincuentes_vip))
+	print(", ".join(delincuentes_vip))
 
 def cfc(grafo):
     visitados = set()
@@ -91,7 +89,7 @@ def cfc(grafo):
     s = Pila()
     cfcs = []
     en_cfs = set()
-    for v in grafo:
+    for v in grafo.vertices():
         if v not in visitados:
             orden[v] = 0
             dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs)
@@ -143,7 +141,7 @@ def determinar_importantes(grafo, cantidad):
         set_datos.add(thief)
 
 
-    return resultado[::-1], set_datos #Asi me quedan ordenados de menor a mayor en orden de busqueda
+    return resultado, set_datos  #Ya me da ordenado de mayor a menor importancia
 
 def pagerank(grafo):
     max_iter = int(grafo.cantidad_vertices()*COEF_RANK)
@@ -165,7 +163,7 @@ def pagerank(grafo):
     return page_rank
 
 def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
-    visitados.agregar(v)
+    visitados.add(v)
     s.apilar(v)
     p.apilar(v)
     for w in grafo.adyacentes(v):
@@ -182,7 +180,7 @@ def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
         nueva_cfc = []
         while z != v:
             z = s.desapilar()
-            en_cfs.agregar(z)
+            en_cfs.add(z)
             nueva_cfc.append(z)
         cfcs.append(nueva_cfc)
 
