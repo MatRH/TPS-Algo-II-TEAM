@@ -17,10 +17,11 @@ def random_walk(grafo):
 
     return frec_verts
 
-def dfs(grafo, origen, distancia, n):
-    distancia[origen] = distancia.get(origen, 0)
-    dfs_random(grafo, origen, distancia, n)
-    return distancia
+def dfs(grafo, origen, frecuencias, n):
+    frecuencias[origen] = frecuencias.get(origen, 1) #Si no esta en el diccionario de frec, su frecuencia inicial es 1
+    cont_walks = 0
+    dfs_random(grafo, origen, frecuencias, n, cont_walks)
+    return frecuencias
 
 """def dfs_wrapper(grafo, vertice, distancia, n, cont):
     for w in grafo.adyacentes(vertice):
@@ -32,11 +33,12 @@ def dfs(grafo, origen, distancia, n):
         dfs_wrapper(grafo, w, distancia, n, cont)
     return """
 
-def dfs_random(grafo, vertice, distancia, n):
+def dfs_random(grafo, vertice, frecuencias, n, cont):
     try: #Puede no tener adyacentes
-        w = random.choice(grafo.adyacentes(vertice)) #Tengo que agarrar uno que tenga adyacentes
+        w = random.choice(grafo.adyacentes(vertice)) #Elijo un vertice adyacente de manera aleatoria
     except:
-        return distancia
-    distancia[w] = distancia[vertice] + 1
-    if distancia[w] == n: return distancia
-    dfs_random(grafo, w, distancia, n)
+        return frecuencias
+    frecuencias[w] = frecuencias.get(w, 0) + 1 #Si no aparece en el dicc de frec, su frec sera 0 y le sumo 1, caso contrario actualizo el total
+    cont += 1
+    if cont < n:
+        dfs_random(grafo, w, frecuencias, n, cont)
