@@ -169,7 +169,7 @@ def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
     for w in grafo.adyacentes(v):
         if w not in visitados:
             orden[w] = orden[v] + 1
-            dfs_cfc(grafo, w, visitados, orden, p, s, cfcs, en_cfcs)
+            dfs_cfc(grafo, w, visitados, orden, p, s, cfcs, en_cfs)
         elif w not in en_cfs:
             while orden[p.ver_tope()] > orden[w]:
                 p.desapilar()
