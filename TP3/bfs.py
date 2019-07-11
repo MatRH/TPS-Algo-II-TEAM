@@ -4,8 +4,8 @@ def bfs(grafo, origen, destino = None, n = 0, set_datos = None):
 	Devuelve un diccionario con los padres de los vertices, sus respectivas distancias al origen,
 	y el vertice que corta el ciclo, en caso de haber'''
 	visitados = set()
-	padre = {}
-	distancia = {}
+	padre = {}	#diccionario {vertice:padre_de_vertice}
+	distancia = {} #diccionario {vertice:distancia_al_origen}
 	q = Cola()
 	visitados.add(origen)
 	padre[origen] = None
@@ -17,7 +17,7 @@ def bfs(grafo, origen, destino = None, n = 0, set_datos = None):
 			if w not in visitados:
 				padre[w] = vertice
 				distancia[w] = distancia[vertice] + 1
-				visitados.add(w) 
+				visitados.add(w)
 				if (set_datos != None and w in set_datos) or (destino != None and w == destino): #Condicion de corte extra
 					return padre, distancia[w], w
 				if n == 0 or distancia[w] < n: #Tengo que chequear si ya me pase de la cantidad de saltos

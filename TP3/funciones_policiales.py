@@ -1,7 +1,7 @@
 import heapq #Para poder utilizar el heap de python
 from collections import Counter # sirve para contar las apariciones de elementos en una lista
-COEF_COMUNIDADES = 0.5 #coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCIÓN DE COMUNIDADES
-COEF_RANK = 0.5#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
+COEF_COMUNIDADES = 0.0005 #coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCIÓN DE COMUNIDADES
+COEF_RANK = 0.0005#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
 from tdas_auxiliares import Cola, Pila
 from bfs import bfs
 #Funciones policiales
@@ -17,14 +17,20 @@ def buscar_comunidades(grafo, n):
     labels = {}
     i = 0
     vertices = grafo.vertices()
-    cantidad_vertices = len(vertices)
-    iteraciones  = cantidad_vertices * COEF_COMUNIDADES
+    cant_vertices = len(vertices)
+    iteraciones  = int(cant_vertices * COEF_COMUNIDADES)
     for v in vertices: #le asigno a cada vertice como etiqueta su posicion en la lista de vertices
-        label[v] = i
+        labels[v] = i
         i += 1
+    print("Cantidad de iteraciones : {}".format(iteraciones))#DEBUG
     for j in range(iteraciones):
+        print("Iteración número {}".format(j))#DEBUG
+        db_value = 0#DEBUG
         for vertice in vertices:
+            print("vertice número {}".format(db_value))#DEBUG
+            db_value += 1 #DEBUG
             entrantes_v = grafo.entrantes(v) #primiva que devuelve una lista de los vertices que tienen como adyacente a v
+            if len(entrantes_v) == 0: continue
             max_label = max(entrantes_v)
             labels[v] = max_label
     cuenta = Counter(label.values()) #cuento cuantas veces aparece cada valor repetido
@@ -42,7 +48,7 @@ def min_seguimientos(grafo, origen, destino):
     '''Imprime una lista con los delincuentes con los cuales vamos del delincuente origen
     al delincuente destino de la forma mas rapida. En caso de no poder hacer el seguimiento
     se imprime Seguimiento imposible.'''
-    camino, distancias = bfs(grafo, origen, destino)
+    camino, distancias, none = bfs(grafo, origen, destino)
     if destino not in camino:
         print("Seguimiento imposible")
     else:
@@ -74,7 +80,7 @@ def persecucion(grafo, delincuentes, k):
 
 def mas_imp(grafo, k):
 	"""Imprime los k delincuentes mas importantes"""
-	delincuentes_vip = [str(x) for x in determinar_importantes(grafo, k)] #Lista por comprension asi quedan en formato str
+	delincuentes_vip = [str(x) for x in determinar_importantes(grafo, k)[0]] #Lista por comprension asi quedan en formato str
 	separador = ", "
 	print(separador.join(delincuentes_vip))
 
@@ -140,19 +146,21 @@ def determinar_importantes(grafo, cantidad):
     return resultado[::-1], set_datos #Asi me quedan ordenados de menor a mayor en orden de busqueda
 
 def pagerank(grafo):
-    max_iter = grafo.cantidad()*COEF_RANK
+    max_iter = int(grafo.cantidad_vertices()*COEF_RANK)
+    print ("Cantidad de iteraciones a realizar : {}".format(max_iter))
     page_rank = {}
     for vertice in grafo.vertices():
-        page_rank[vertice] = 1/grafo.cantidad()
+        page_rank[vertice] = 1/grafo.cantidad_vertices()
     for i in range(max_iter):
+        print("Número de iteración: {}".format(i))
         iter_rank = {}
         for vertice in grafo.vertices():
             adyacentes = grafo.adyacentes(vertice)
-            cant_adyacentes = len()
+            cant_adyacentes = len(adyacentes)
             for adyacente in adyacentes:
                 if adyacente not in iter_rank.keys(): iter_rank[adyacente] = 0
                 iter_rank[adyacente] += page_rank[vertice]/cant_adyacentes #el rank en esta iteracion
-        for vertice, rank in iter_rank.items(): 
+        for vertice, rank in iter_rank.items():
             page_rank[vertice] = rank #guardo el resultado de la ultima iteracion
     return page_rank
 
@@ -193,7 +201,7 @@ def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, camino, rechazados):
 
     for w in grafo.adyacentes(adyacente):
         if w in rechazados or w in camino: continue #Si esta en rechazados o en el camino, lo descarto (no tendria camino simple)
-        if not divulgar_ciclo_wrapper(grafo, origen, w, n, camino, rechazados): 
+        if not divulgar_ciclo_wrapper(grafo, origen, w, n, camino, rechazados):
             continue #si entro al if, significa que con ese vertice no llegue, pruebo con otro
         else: return True #Si encontre un camino el if de arriba dara True y por ende entrare a este else
 
@@ -202,7 +210,7 @@ def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, camino, rechazados):
     return False
 
 
-'''Cosas que se me ocurren: 
+'''Cosas que se me ocurren:
 - Pasarse del largo -> Podar (1)
 - Llegar al largo en cuestion y que no sea con el vértice destino (el mismo del origen) -> cortar (2)
 - Llegamos al vértice destino fuera del largo n -> Cortar (3)'''
