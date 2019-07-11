@@ -21,23 +21,23 @@ class Grafo:
     def agregar_vertice(self, vertice, aristas = None):
         vertices = self.verts
         if vertice not in vertices.keys(): #agrego el vértice si no existe
-            adyacentes = {}
+            adyacentes = set()
             vertices[vertice] = adyacentes
             self.cant_vertices+= 1
 
         adyacentes = vertices[vertice] #tomo sus aristas
         if (aristas):    #si tengo adyacentes los cargo
-            for v_llegada, peso in aristas:
-                adyacentes[v_llegada] = peso #si ya existía esa arista la sobreescribo
+            for v_llegada in aristas:
+                adyacentes.add(v_llegada) #si ya existía esa arista la sobreescribo
 
     def agregar_arista(self, salida, peso, llegada): #método para crear una arista entre dos vertices
         vertices = self.verts
         if salida not in vertices.keys():
-            adyacentes = {}
+            adyacentes = set()
             vertices[salida] = adyacentes
             self.cant_vertices+= 1
         adyacentes = vertices[salida]
-        adyacentes[llegada] = peso
+        adyacentes.add(llegada)
 
     """Método para cargar varias aristas, donde aristas es una lista de listas
     de tres elementos, donde le primer elemento es el vertice de salida, el segundo
@@ -46,11 +46,11 @@ class Grafo:
         vertices = self.verts
         for salida, peso, llegada in aristas:
             if salida not in vertices.keys():
-                adyacentes = {}
+                adyacentes = set()
                 vertices[salida] = adyacentes
                 self.cant_vertices+= 1
             adyacentes = vertices[salida]
-            adyacentes[llegada] = peso
+            adyacentes.add(llegada)
 
     def cantidad_vertices(self):#devuelve la cantidad de vertices
         return self.cant_vertices
@@ -63,7 +63,7 @@ class Grafo:
         vertices = self.verts
         if vertice not in vertices.keys(): return resultado
         adyacentes = vertices[vertice]
-        for adyacente in adyacentes.keys():
+        for adyacente in adyacentes:
             resultado.append(adyacente)
         return resultado
 
@@ -76,15 +76,35 @@ class Grafo:
     def eliminar_arista(self, salida, llegada):#elimina la arista salida->llegada
         vertices = self.verts
         if salida not in vertices.keys(): return
+        if llegada not in vertices.keys(): return
         adyacentes = vertices[salida]
-        del adyacentes[llegada]
-        #deberiamos borrar el vertice si queda solo???? en ese caso recordar actualizar la cantidad de vertices
+        adyacentes.remove(llegada)
 
     def eliminar_vertice(self, vertice):
         vertices = self.verts
-        if vertice not in vertices.keys(): return
+        if vertice not in vertices.keys(): return #si el vertice no existe vuelvo
+        for vert, adyacentes in vertices.items():   #elimino las aristas al vertice
+            if vertice in adyacentes:
+                adyacentes.remove(vertice)
         del vertices[vertice]
         self.cant_vertices -= 1
+
+    """Devuelve un diccionario, {vertice:set de vertices entrantes} con todos los
+    vertices del grafo y los vertices que con aristas entrantes a ellos"""
+    def dicc_entrantes(self):
+        grafo = self.verts
+        entran = {}
+        for vertice, adyacentes in grafo.items():
+            if vertice not in entran:
+                desde = set()
+                entran[vertice] = desde
+            for adyacente in adyacentes:
+                if adyacente not in entran:
+                    desde = set()
+                    entran[adyacente] = desde
+                entran[adyacente].add(vertice) #agrego el vertice al set de entrantes a adyacente
+        return entran
+
 
     def __str__(self):
         vertices = self.verts

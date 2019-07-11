@@ -17,6 +17,7 @@ def buscar_comunidades(grafo, n):
     labels = {}
     i = 0
     vertices = grafo.vertices()
+    entran = grafo.dicc_entrantes()
     cant_vertices = len(vertices)
     iteraciones  = int(cant_vertices * COEF_COMUNIDADES)
     for v in vertices: #le asigno a cada vertice como etiqueta su posicion en la lista de vertices
@@ -25,20 +26,20 @@ def buscar_comunidades(grafo, n):
     print("Cantidad de iteraciones : {}".format(iteraciones))#DEBUG
     for j in range(iteraciones):
         print("Iteración número {}".format(j))#DEBUG
-        db_value = 0#DEBUG
+        #db_value = 0#DEBUG
         for vertice in vertices:
-            print("vertice número {}".format(db_value))#DEBUG
-            db_value += 1 #DEBUG
-            entrantes_v = grafo.entrantes(v) #primiva que devuelve una lista de los vertices que tienen como adyacente a v
+            #print("vertice número {}".format(db_value))#DEBUG
+            #db_value += 1 #DEBUG
+            entrantes_v = entran[vertice] #set de vertices entrantes a v
             if len(entrantes_v) == 0: continue
             max_label = max(entrantes_v)
-            labels[v] = max_label
-    cuenta = Counter(label.values()) #cuento cuantas veces aparece cada valor repetido
+            labels[vertice] = max_label
+    cuenta = Counter(labels.values()) #cuento cuantas veces aparece cada valor repetido
     num_comunidad = 0
     for etiqueta, cuenta in cuenta.items(): #tomo cada etiqueta y sus apariciones
         if cuenta >= n :#si la comunidad tiene al menos n miembros
             resultado += ("Comunidad {}: ".format(num_comunidad)) #agrego al resultado el indice de la comunidad
-            for vertice, label in labels:
+            for vertice, label in labels.items():
                 if etiqueta == label:
                     resultado += "{}, ".format(vertice)#agrego al resultado los vertices que pertenecen a la comunidad
             num_comunidad += 1
