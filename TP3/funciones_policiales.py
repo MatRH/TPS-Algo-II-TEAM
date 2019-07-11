@@ -4,6 +4,7 @@ COEF_COMUNIDADES = 0.0005 #coeficiente para calcular cuantas iteraciones realiza
 COEF_RANK = 0.0005#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
 from tdas_auxiliares import Cola, Pila
 from bfs import bfs
+
 #Funciones policiales
 def divulgar(grafo, delincuente, n):
     '''Imprime una lista con todos los delincuentes a los cuales les terminaria llegando un rumor
@@ -89,7 +90,10 @@ def cfc(grafo):
         if v not in visitados:
             orden[v] = 0
             dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs)
-    return cfcs
+    cont_aux = 1
+    for comp in cfcs:
+        print("CFC {}: {}".format(cont_aux, ", ".join(comp)))
+        cont_aux += 1
 
 def divulgar_ciclo(grafo, origen, n):
     '''Permite encontrar un camino simple que empiece y termine en el delincuente pasado
@@ -177,7 +181,7 @@ def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
         while z != v:
             z = s.desapilar()
             en_cfs.add(z)
-            nueva_cfc.append(z)
+            nueva_cfc.append(str(z))
         cfcs.append(nueva_cfc)
 
 def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, camino, rechazados):

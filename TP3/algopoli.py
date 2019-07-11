@@ -8,6 +8,7 @@ import sys #para leer parametros de la linea de comando
 from grafo import Grafo
 from funciones_policiales import *
 COMANDOS = ["min_seguimientos", "persecucion", "mas_imp", "comunidades", "divulgar", "divulgar_ciclo", "cfc"]
+sys.setrecursionlimit(1000000)
 
 def main():
     argumentos = len(sys.argv) #Me da la cantidad de argumentos recibidos
