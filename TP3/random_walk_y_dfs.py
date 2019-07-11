@@ -17,14 +17,12 @@ def random_walk(grafo):
 
     return frec_verts
 
-
 def dfs(grafo, origen, distancia, n):
-    distancia[origen] = 0
-    cont = 1
-    dfs_wrapper(grafo, origen, distancia, n, cont)
+    distancia[origen] = distancia.get(origen, 0)
+    dfs_random(grafo, origen, distancia, n)
     return distancia
 
-def dfs_wrapper(grafo, vertice, distancia, n, cont):
+"""def dfs_wrapper(grafo, vertice, distancia, n, cont):
     for w in grafo.adyacentes(vertice):
         print("Iteracion numero {}".format(cont))
         cont += 1
@@ -32,4 +30,13 @@ def dfs_wrapper(grafo, vertice, distancia, n, cont):
         distancia[w] = distancia[vertice] + 1
         if distancia[w] == n: return
         dfs_wrapper(grafo, w, distancia, n, cont)
-    return 
+    return """
+
+def dfs_random(grafo, vertice, distancia, n):
+    try: #Puede no tener adyacentes
+        w = random.choice(grafo.adyacentes(vertice)) #Tengo que agarrar uno que tenga adyacentes
+    except:
+        return distancia
+    distancia[w] = distancia[vertice] + 1
+    if distancia[w] == n: return distancia
+    dfs_random(grafo, w, distancia, n)
