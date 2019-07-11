@@ -31,7 +31,7 @@ def buscar_comunidades(grafo, n):
             max_label = max(entrantes_v)
             labels[vertice] = max_label
     cuenta = Counter(labels.values()) #cuento cuantas veces aparece cada valor repetido
-    num_comunidad = 0
+    num_comunidad = 1
     for etiqueta, cuenta in cuenta.items(): #tomo cada etiqueta y sus apariciones
         if cuenta >= n :#si la comunidad tiene al menos n miembros
             resultado += ("Comunidad {}: ".format(num_comunidad)) #agrego al resultado el indice de la comunidad

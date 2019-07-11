@@ -131,3 +131,10 @@ class Grafo:
 
     def vertices(self):#devuelve una lista con todos los vertices
         return self.verts.keys()
+
+    def obtener_vertice_random(self): #Devuelve un vertice random del grafo
+        #print(self.verts.keys())
+        try:
+            return random.choice(list(self.verts))
+        except:
+            print("El grafo no contiene vertices")
