@@ -23,7 +23,6 @@ def main():
             grafo.agregar_arista(int(v), 0, int(w))
         #Grafo creado
         while True:
-            print("Ingrese comando")
             comando = input() #Recibe el comando
             if not comando: break
             comando = comando.split() #Separa por espacios en blanco
@@ -31,7 +30,6 @@ def main():
                 print("Error: Comando invalido")
                 continue
             aplicar_comando(grafo, comando)
-        print("Termine")
 
 def aplicar_comando(grafo, comando):
     """Aplica el comando recibido por parametro al grafo"""

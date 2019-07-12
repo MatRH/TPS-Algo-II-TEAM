@@ -1,9 +1,9 @@
 import heapq #Para poder utilizar el heap de python
 from collections import Counter # sirve para contar las apariciones de elementos en una lista
-COEF_COMUNIDADES = 0.0005 #coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCIÓN DE COMUNIDADES
-COEF_RANK = 0.0005#coeficiente para calcular cuantas iteraciones realizar en base a la cantidad de vertices EN LA FUNCION DE RANK
 from tdas_auxiliares import Cola, Pila
-from bfs import bfs
+from bfs import bfs, dfs
+CANT_WALKS = 5000 #Cantidad de random walks a realizar
+LEN_WALKS = 50  #Longitud de las caminatadas
 
 #Funciones policiales
 def divulgar(grafo, delincuente, n):
@@ -45,32 +45,33 @@ def min_seguimientos(grafo, origen, destino):
     '''Imprime una lista con los delincuentes con los cuales vamos del delincuente origen
     al delincuente destino de la forma mas rapida. En caso de no poder hacer el seguimiento
     se imprime Seguimiento imposible.'''
-    camino, distancias, none = bfs(grafo, origen, destino)
-    if destino not in camino:
+    camino = bfs(grafo, origen, destino) #Me devuelve una tupla de elementos, solo necesito el primer diccionario para construir el camino
+    if destino not in camino[0]:
         print("Seguimiento imposible")
     else:
-        camino_final = construir_camino(camino, destino) #Reconstruyo el camino
+        camino_final = construir_camino(camino[0], destino) #Reconstruyo el camino
         print(" -> ".join(camino_final))
 
-def persecucion(grafo, delincuentes, k):
-    '''Recibe por parametro un grafo, una lista de delincuentes (agentes en cubierto),
+def persecucion(grafo, agentes, k):
+    '''Recibe por parametro un grafo, una lista agentes en cubierto,
     y un numero k que representa la cantidad de delincuentes importantes.
     Imprime la persecucion que sea mas rapida (camino minimo) desde uno de los
-    agentes en cubierto hacia uno de los k delincuentes'''
-    mas_buscados, mas_buscados_set = determinar_importantes(grafo, k) #Devuelve un set con los mas importantes
+    agentes en cubierto hacia uno de los k delincuentes mas importantes'''
+    mas_busc, mas_busc_dicc = determinar_importantes(grafo, k) #Devuelve una lista y un dicc
     min_dist = 0
-    camino_minimo, delincuente = None, None #Delincuente es para saber hacia quien es la persecucion
-    for agente in delincuentes:
-        camino, distancia, thief = bfs(grafo, agente, None, min_dist, mas_buscados_set)
-        #Encontraste un camino a thief, te fijas si actualizas camino minimo
-        if thief == None: continue #Desde el agente pasado no encontre un camino a uno de los chorros
-        if min_dist == 0 or distancia < min_dist or distancia == min_dist and mas_buscados.index(thief) < mas_buscados.index(delincuente):
-            min_dist = distancia
-            camino_minimo = camino
-            delincuente = thief  #Guardas los datos de la persecucion hallada
+    camino_min, delincuente = None, None #Delincuente es para saber hacia quien es la persecucion
+
+    for agente in agentes:
+        camino, dist, ladron = bfs(grafo, agente, None, min_dist, mas_busc_dicc)
+        if ladron == None: continue #Desde el agente pasado no encontre un camino a uno de los chorros, continuo
+        if min_dist == 0 or dist < min_dist or dist == min_dist and mas_busc_dicc[ladron] > mas_busc_dicc[delincuente]:
+            min_dist = dist
+            camino_min = camino
+            delincuente = ladron  #Guardas el delincuente al cual halle el camino minomo
+
     #Finalizado el for de agentes en cubierto debo reconstruir el camino
     if delincuente != None:
-        persecucion = construir_camino(camino_minimo, delincuente)
+        persecucion = construir_camino(camino_min, delincuente)
         print(" -> ".join(persecucion))
     else: print("Error: Seguimiento imposible")
 
@@ -127,40 +128,29 @@ def construir_camino(camino, delincuente):
 
 def determinar_importantes(grafo, cantidad):
     '''Determina los k (cantidad) delincuentes mas importantes y devuelve una lista y un set con ellos'''
-    ranks = pagerank(grafo)
+    ranks = random_walk(grafo)
     heap = []
     resultado = []
-    set_datos = set()
+    dicc_datos = {} #Contendra como clave al ladron y valor la importancia del mismo
+
     for vertice, rank in ranks.items():
         heap.append((rank, vertice))
-
     heapq.heapify(heap) #Me da un heap de minimos
     vip_thief = heapq.nlargest(cantidad, heap)  #Me devuelve los K mas buscados en una lista de tuplas
     for rank, thief in vip_thief:
         resultado.append(thief)  #Quedaran ordenados con los mas buscados al comienzo de la lista
-        set_datos.add(thief)
+        dicc_datos[thief] = rank
 
+    return resultado, dicc_datos  #Ya me da ordenado de mayor a menor importancia
 
-    return resultado, set_datos  #Ya me da ordenado de mayor a menor importancia
+def random_walk(grafo):
+    '''Realiza random walks sobre el grafo'''
+    frec_verts = {} #Para guardar las frecuencias de los vertices
+    for _ in range(CANT_WALKS):
+        origen = grafo.obtener_vertice_random()
+        dfs(grafo, origen, frec_verts, LEN_WALKS)
 
-def pagerank(grafo):
-    max_iter = int(grafo.cantidad_vertices()*COEF_RANK)
-    #print ("Cantidad de iteraciones a realizar : {}".format(max_iter))
-    page_rank = {}
-    for vertice in grafo.vertices():
-        page_rank[vertice] = 1/grafo.cantidad_vertices()
-    for i in range(max_iter):
-        #print("Número de iteración: {}".format(i))
-        iter_rank = {}
-        for vertice in grafo.vertices():
-            adyacentes = grafo.adyacentes(vertice)
-            cant_adyacentes = len(adyacentes)
-            for adyacente in adyacentes:
-                if adyacente not in iter_rank.keys(): iter_rank[adyacente] = 0
-                iter_rank[adyacente] += page_rank[vertice]/cant_adyacentes #el rank en esta iteracion
-        for vertice, rank in iter_rank.items():
-            page_rank[vertice] = rank #guardo el resultado de la ultima iteracion
-    return page_rank
+    return frec_verts
 
 def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
     visitados.add(v)
