@@ -187,9 +187,15 @@ def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
 def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, camino, rechazados):
     '''Devuelve True si se encontro un ciclo de largo n que comience en origen y finalice en el.
     False en caso contrario'''
-    if n == 1 and origen == adyacente: return True #Para evitar agregarlo a la lista tres veces cuando nos piden largo 1
+    if n == 1:
+    	if origen == adyacente:
+    		return True
+    	else:
+    		return False
+
     if n != 1 and origen == adyacente: return False #Porque sino va a pasar dos veces por un vertice si esta dirigido a si mismo
     camino.append(adyacente)
+    
     if len(camino) == n: #Siempre en la posicion n estara el ultimo vertice que tiene que tener como adyacente al origen
         if origen in grafo.adyacentes(adyacente):
             return True
