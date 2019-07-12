@@ -4,6 +4,7 @@ from tdas_auxiliares import Cola, Pila
 from bfs import bfs, dfs
 CANT_WALKS = 5000 #Cantidad de random walks a realizar
 LEN_WALKS = 50  #Longitud de las caminatadas
+COEF_COMUNIDADES = 0.00001 #coeficiente para el cálculo de iteraciones en la función de comunidades
 
 #Funciones policiales
 def divulgar(grafo, delincuente, n):
@@ -185,7 +186,7 @@ def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, camino, rechazados):
 
     if n != 1 and origen == adyacente: return False #Porque sino va a pasar dos veces por un vertice si esta dirigido a si mismo
     camino.append(adyacente)
-    
+
     if len(camino) == n: #Siempre en la posicion n estara el ultimo vertice que tiene que tener como adyacente al origen
         if origen in grafo.adyacentes(adyacente):
             return True
