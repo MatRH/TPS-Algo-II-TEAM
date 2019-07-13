@@ -4,7 +4,7 @@ from tdas_auxiliares import Cola, Pila
 from bfs import bfs, dfs
 COEF_WALKS = 0.001 #Coeficiente para calcular la cantidad de random walks
 COEF_LWALKS = 0.0001  #Coeficiente para calcular la longitud de los caminos
-COEF_COMUNIDADES = 0.00001 #coeficiente para el cálculo de iteraciones en la función de comunidades
+COEF_COMUNIDADES = 0.01 #coeficiente para el cálculo de iteraciones en la función de comunidades
 
 #Funciones policiales
 def divulgar(grafo, delincuente, n):
@@ -18,8 +18,8 @@ def buscar_comunidades(grafo, n):
     resultado = ""
     labels = {}
     i = 0
-    vertices = grafo.vertices()
-    entran = grafo.dicc_entrantes()
+    vertices = grafo.vertices() #lista de vertices en el grafo
+    entran = grafo.dicc_entrantes() #diccionario {v:set de vertices entrantes a v}
     cant_vertices = len(vertices)
     iteraciones  = int(cant_vertices * COEF_COMUNIDADES)
     for v in vertices: #le asigno a cada vertice como etiqueta su posicion en la lista de vertices
@@ -28,19 +28,32 @@ def buscar_comunidades(grafo, n):
     for j in range(iteraciones):
         for vertice in vertices:
             entrantes_v = entran[vertice] #set de vertices entrantes a v
-            if len(entrantes_v) == 0: continue
-            max_label = max(entrantes_v)
-            labels[vertice] = max_label
+            if len(entrantes_v) == 0: continue #si el vertice está aislado lo salteo
+            max = max_label(entrantes_v, labels)
+            labels[vertice] = max
     cuenta = Counter(labels.values()) #cuento cuantas veces aparece cada valor repetido
     num_comunidad = 1
     for etiqueta, cuenta in cuenta.items(): #tomo cada etiqueta y sus apariciones
         if cuenta >= n :#si la comunidad tiene al menos n miembros
+            if num_comunidad > 1:
+                resultado = resultado.rstrip(", ")
+                resultado += '\n'
             resultado += ("Comunidad {}: ".format(num_comunidad)) #agrego al resultado el indice de la comunidad
             for vertice, label in labels.items():
                 if etiqueta == label:
                     resultado += "{}, ".format(vertice)#agrego al resultado los vertices que pertenecen a la comunidad
             num_comunidad += 1
-    print(resultado)
+    print(resultado.rstrip(", "))
+
+
+def max_label(entrantes_v, labels):
+    '''Dado un diccionario {vertice:label} y un set de vertices entrantes, Devuelve
+    el label más grande de los vertices entrantes'''
+    max = -1
+    for entrante in entrantes_v:
+        label = labels[entrante]
+        if label > max: max = label
+    return max
 
 def min_seguimientos(grafo, origen, destino):
     '''Imprime una lista con los delincuentes con los cuales vamos del delincuente origen

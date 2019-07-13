@@ -114,11 +114,11 @@ class Grafo:
         grafo = self.verts
         entran = {}
         for vertice, adyacentes in grafo.items():
-            if vertice not in entran:
+            if vertice not in entran: #agrego el vertice
                 desde = set()
                 entran[vertice] = desde
             for adyacente in adyacentes:
-                if adyacente not in entran:
+                if adyacente not in entran: #agrego el vertice
                     desde = set()
                     entran[adyacente] = desde
                 entran[adyacente].add(vertice) #agrego el vertice al set de entrantes a adyacente
