@@ -23,8 +23,11 @@ def main():
             grafo.agregar_arista(int(v), 0, int(w))
         #Grafo creado
         while True:
-            comando = input() #Recibe el comando
-            if not comando: break
+            try:
+                comando = input() #Recibe el comando
+                if not comando: break
+            except EOFError: #Para evitar el Error de EOF en el corrector
+                return
             comando = comando.split() #Separa por espacios en blanco
             if comando[0] not in COMANDOS:
                 print("Error: Comando invalido")
