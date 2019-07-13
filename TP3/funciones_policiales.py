@@ -46,12 +46,16 @@ def min_seguimientos(grafo, origen, destino):
     '''Imprime una lista con los delincuentes con los cuales vamos del delincuente origen
     al delincuente destino de la forma mas rapida. En caso de no poder hacer el seguimiento
     se imprime Seguimiento imposible.'''
-    camino = bfs(grafo, origen, destino) #Me devuelve una tupla de elementos, solo necesito el primer diccionario para construir el camino
-    if destino not in camino[0]:
+    dicc_verts = grafo.dicc_verts() #Devuelve un diccionario con los vertices
+    if origen not in dicc_verts or destino not in dicc_verts:
         print("Seguimiento imposible")
     else:
-        camino_final = construir_camino(camino[0], destino) #Reconstruyo el camino
-        print(" -> ".join(camino_final))
+        camino = bfs(grafo, origen, destino) #Me devuelve una tupla de elementos, solo necesito el primer diccionario para construir el camino
+        if destino not in camino[0]:
+            print("Seguimiento imposible")
+        else:
+            camino_final = construir_camino(camino[0], destino) #Reconstruyo el camino
+            print(" -> ".join(camino_final))
 
 def persecucion(grafo, agentes, k):
     '''Recibe por parametro un grafo, una lista agentes en cubierto,

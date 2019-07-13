@@ -138,3 +138,6 @@ class Grafo:
             return random.choices(list(self.verts), k=cant)
         except:
             print("El grafo no contiene vertices")
+
+    def dicc_verts(self): #Devuelve un diccionario con los vertices
+        return self.verts
