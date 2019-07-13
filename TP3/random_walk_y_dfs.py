@@ -35,7 +35,10 @@ def dfs(grafo, origen, frecuencias, n):
 
 def dfs_random(grafo, vertice, frecuencias, n, cont):
     try: #Puede no tener adyacentes
-        w = random.choice(grafo.adyacentes(vertice)) #Elijo un vertice adyacente de manera aleatoria
+        adyacentes_vertice = grafo.adyacentes(vertice)
+        w = random.choice(adyacentes_vertice) #Elijo un vertice adyacente de manera aleatoria
+        if (len(adyacentes_vertice) == 1 and vertice in adyacentes_vertice:
+            return frecuencias
     except:
         return frecuencias
     frecuencias[w] = frecuencias.get(w, 0) + 1 #Si no aparece en el dicc de frec, su frec sera 0 y le sumo 1, caso contrario actualizo el total

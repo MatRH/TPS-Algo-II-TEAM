@@ -119,7 +119,7 @@ class Grafo:
     def cantidad_aristas(self):#no se si vale la pena llevar la cuenta para que sea O(1) o recorrer en el momento
         cantidad = 0
         for vertice, adyacentes in self.verts.items():
-            cantidad += len(adyacentes.keys())
+            cantidad += len(adyacentes)
         return cantidad
 
     def entrantes(self, v):
@@ -133,9 +133,8 @@ class Grafo:
     def vertices(self):#devuelve una lista con todos los vertices
         return self.verts.keys()
 
-    def obtener_vertice_random(self): #Devuelve un vertice random del grafo
-        #print(self.verts.keys())
+    def obtener_vertice_random(self, cant): #Devuelve un vertice random del grafo
         try:
-            return random.choice(list(self.verts))
+            return random.choices(list(self.verts), k=cant)
         except:
             print("El grafo no contiene vertices")

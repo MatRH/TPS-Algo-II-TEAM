@@ -2,8 +2,8 @@ import heapq #Para poder utilizar el heap de python
 from collections import Counter # sirve para contar las apariciones de elementos en una lista
 from tdas_auxiliares import Cola, Pila
 from bfs import bfs, dfs
-CANT_WALKS = 5000 #Cantidad de random walks a realizar
-LEN_WALKS = 50  #Longitud de las caminatadas
+COEF_WALKS = 0.001 #Coeficiente para calcular la cantidad de random walks
+COEF_LWALKS = 0.0001  #Coeficiente para calcular la longitud de los caminos
 COEF_COMUNIDADES = 0.00001 #coeficiente para el cálculo de iteraciones en la función de comunidades
 
 #Funciones policiales
@@ -147,10 +147,14 @@ def determinar_importantes(grafo, cantidad):
 def random_walk(grafo):
     '''Realiza random walks sobre el grafo'''
     frec_verts = {} #Para guardar las frecuencias de los vertices
-    for _ in range(CANT_WALKS):
-        origen = grafo.obtener_vertice_random()
-        dfs(grafo, origen, frec_verts, LEN_WALKS)
-
+    #cant_walks = int(grafo.cantidad_vertices()*COEF_WALKS)
+    #len_walks = int(grafo.cantidad_aristas()*COEF_LWALKS)
+    cant_walks  = 3000
+    len_walks = 150
+    #print("Con {} walks de longitud {}".format(cant_walks, len_walks))#DEBUG
+    origenes = grafo.obtener_vertice_random(cant_walks)
+    for origen in origenes:
+        dfs(grafo, origen, frec_verts, len_walks)
     return frec_verts
 
 def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
