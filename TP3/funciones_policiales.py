@@ -81,9 +81,9 @@ def persecucion(grafo, agentes, k):
     else: print("Error: Seguimiento imposible")
 
 def mas_imp(grafo, k):
-	"""Imprime los k delincuentes mas importantes"""
-	delincuentes_vip = [str(x) for x in determinar_importantes(grafo, k)[0]] #Lista por comprension asi quedan en formato str
-	print(", ".join(delincuentes_vip))
+    """Imprime los k delincuentes mas importantes"""
+    delincuentes_vip = [str(x) for x in determinar_importantes(grafo, k)[0]] #Lista por comprension asi quedan en formato str
+    print(", ".join(delincuentes_vip))
 
 def cfc(grafo):
     visitados = set()
@@ -153,8 +153,8 @@ def random_walk(grafo):
     frec_verts = {} #Para guardar las frecuencias de los vertices
     #cant_walks = int(grafo.cantidad_vertices()*COEF_WALKS)
     #len_walks = int(grafo.cantidad_aristas()*COEF_LWALKS)
-    cant_walks  = 3000
-    len_walks = 150
+    cant_walks  = 3600
+    len_walks = 15
     #print("Con {} walks de longitud {}".format(cant_walks, len_walks))#DEBUG
     origenes = grafo.obtener_vertice_random(cant_walks)
     for origen in origenes:

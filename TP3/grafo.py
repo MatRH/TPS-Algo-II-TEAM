@@ -20,22 +20,36 @@ class Grafo:
     opcionalmente una lista de tuplas, donde cada tupla tiene por primer elemento
     el vertice de llegada y por segundo el peso"""
     def agregar_vertice(self, vertice, aristas = None):
-        vertices = self.verts
-        if vertice not in vertices.keys(): #agrego el vértice si no existe
+        #vertices = self.verts
+        if vertice not in self.verts: #agrego el vértice si no existe
             adyacentes = set()
-            vertices[vertice] = adyacentes
+            #vertices[vertice] = adyacentes
+            self.verts[vertice] = adyacentes
             self.cant_vertices+= 1
 
-        adyacentes = vertices[vertice] #tomo sus aristas
+        adyacentes = self.verts[vertice] #tomo sus aristas
         if (aristas):    #si tengo adyacentes los cargo
             for v_llegada in aristas:
                 adyacentes.add(v_llegada) #si ya existía esa arista la sobreescribo
 
-    def agregar_arista(self, salida, peso, llegada): #método para crear una arista entre dos vertices
+    """def agregar_arista(self, salida, peso, llegada): #método para crear una arista entre dos vertices
+        #vertices = self.verts
+        if salida not in self.verts:
+            adyacentes = set()
+            self,verts[salida] = adyacentes
+            self.cant_vertices+= 1
+        adyacentes = vertices[salida]
+        adyacentes.add(llegada)"""
+
+    def agregar_arista(self, salida, llegada): #método para crear una arista entre dos vertices
         vertices = self.verts
         if salida not in vertices.keys():
             adyacentes = set()
             vertices[salida] = adyacentes
+            self.cant_vertices+= 1
+        if llegada not in vertices.keys():
+            adyacentes = set()
+            vertices[llegada] = adyacentes
             self.cant_vertices+= 1
         adyacentes = vertices[salida]
         adyacentes.add(llegada)
@@ -57,34 +71,38 @@ class Grafo:
         return self.cant_vertices
 
     def vertice_pertenece(self, vertice):#devuevle true si el vertice pertenece al grafo
-        return True if vertice in self.verts.keys() else False
+        return True if vertice in self.verts else False
 
     def adyacentes(self, vertice):#devuelve una lista con los vertices adyacentes a vertice
         resultado = []
-        vertices = self.verts
-        if vertice not in vertices.keys(): return resultado
-        adyacentes = vertices[vertice]
+        #vertices = self.verts
+        #if vertice not in vertices.keys(): return resultado
+        if vertice not in self.verts: return resultado
+        #adyacentes = vertices[vertice]
+        adyacentes = self.verts[vertice]
         for adyacente in adyacentes:
             resultado.append(adyacente)
         return resultado
 
     def existe_arista(self, salida, llegada):#devuelve true si existe la arista salida->llegada
-        vertices = self.verts
-        if salida not in vertices.keys():
+        #vertices = self.verts
+        #if salida not in vertices.keys():
+        if salida not in self.verts:
             return False
         return llegada in self.adyacentes(salida)
 
     def eliminar_arista(self, salida, llegada):#elimina la arista salida->llegada
-        vertices = self.verts
-        if salida not in vertices.keys(): return
-        if llegada not in vertices.keys(): return
-        adyacentes = vertices[salida]
+        #vertices = self.verts
+        if salida not in self.verts: return
+        if llegada not in self.verts: return
+        adyacentes = self.verts[salida]
         adyacentes.remove(llegada)
 
     def eliminar_vertice(self, vertice):
-        vertices = self.verts
-        if vertice not in vertices.keys(): return #si el vertice no existe vuelvo
-        for vert, adyacentes in vertices.items():   #elimino las aristas al vertice
+        #vertices = self.verts
+        #if vertice not in vertices.keys(): return #si el vertice no existe vuelvo
+        if vertice not in self.verts: return
+        for vert, adyacentes in self.verts.items():   #elimino las aristas al vertice
             if vertice in adyacentes:
                 adyacentes.remove(vertice)
         del vertices[vertice]
