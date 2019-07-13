@@ -65,7 +65,7 @@ def persecucion(grafo, agentes, k):
     for agente in agentes:
         camino, dist, ladron = bfs(grafo, agente, None, min_dist, mas_busc_dicc)
         if ladron == None: continue #Desde el agente pasado no encontre un camino a uno de los chorros, continuo
-        if min_dist == 0 or dist < min_dist or dist == min_dist and mas_busc_dicc[ladron] > mas_busc_dicc[delincuente]:
+        if min_dist == 0 or dist < min_dist or (dist == min_dist and mas_busc_dicc[ladron] > mas_busc_dicc[delincuente]):
             min_dist = dist
             camino_min = camino
             delincuente = ladron  #Guardas el delincuente al cual halle el camino minomo
