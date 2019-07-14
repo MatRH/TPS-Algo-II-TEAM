@@ -1,10 +1,10 @@
 import heapq #Para poder utilizar el heap de python
-from collections import Counter # sirve para contar las apariciones de elementos en una lista
+from collections import Counter #Sirve para contar las apariciones de elementos en una lista
 from tdas_auxiliares import Cola, Pila
 from bfs import bfs, dfs
-COEF_WALKS = 0.001 #Coeficiente para calcular la cantidad de random walks
-COEF_LWALKS = 0.0001  #Coeficiente para calcular la longitud de los caminos
-COEF_COMUNIDADES = 0.01 #coeficiente para el cálculo de iteraciones en la función de comunidades
+CANT_WALKS = 3600 #Cantidad de caminatas a realizar
+LEN_WALKS = 15  #Longitud de las caminatas
+COEF_COMUNIDADES = 0.01 #Coeficiente para el cálculo de iteraciones en la función de comunidades
 
 #Funciones policiales
 def divulgar(grafo, delincuente, n):
@@ -109,10 +109,13 @@ def cfc(grafo):
         if v not in visitados:
             orden[v] = 0
             dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs)
+
     cont_aux = 1
     for comp in cfcs:
-        print("CFC {}: {}".format(cont_aux, ", ".join(comp)))
-        cont_aux += 1
+    	comp = sorted(comp)
+    	comp = [str(x) for x in comp]
+    	print("CFC {}: {}".format(cont_aux, ", ".join(comp)))
+    	cont_aux += 1
 
 def divulgar_ciclo(grafo, origen, n):
     '''Permite encontrar un camino simple que empiece y termine en el delincuente pasado
@@ -164,14 +167,9 @@ def determinar_importantes(grafo, cantidad):
 def random_walk(grafo):
     '''Realiza random walks sobre el grafo'''
     frec_verts = {} #Para guardar las frecuencias de los vertices
-    #cant_walks = int(grafo.cantidad_vertices()*COEF_WALKS)
-    #len_walks = int(grafo.cantidad_aristas()*COEF_LWALKS)
-    cant_walks  = 3600
-    len_walks = 15
-    #print("Con {} walks de longitud {}".format(cant_walks, len_walks))#DEBUG
-    origenes = grafo.obtener_vertice_random(cant_walks)
+    origenes = grafo.obtener_vertice_random(CANT_WALKS)
     for origen in origenes:
-        dfs(grafo, origen, frec_verts, len_walks)
+        dfs(grafo, origen, frec_verts, LEN_WALKS)
     return frec_verts
 
 def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
@@ -193,7 +191,7 @@ def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
         while z != v:
             z = s.desapilar()
             en_cfs.add(z)
-            nueva_cfc.append(str(z))
+            nueva_cfc.append(z)
         cfcs.append(nueva_cfc)
 
 def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, camino, rechazados):
