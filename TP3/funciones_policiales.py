@@ -2,6 +2,7 @@ import heapq #Para poder utilizar el heap de python
 from collections import Counter #Sirve para contar las apariciones de elementos en una lista
 from tdas_auxiliares import Cola, Pila
 from bfs_dfs import bfs, dfs
+from label_propagation import label_propagation, max_label
 CANT_WALKS = 3600 #Cantidad de caminatas a realizar
 LEN_WALKS = 15  #Longitud de las caminatas
 COEF_COMUNIDADES = 0.01 #Coeficiente para el cálculo de iteraciones en la función de comunidades
@@ -16,21 +17,9 @@ def divulgar(grafo, delincuente, n):
 
 def buscar_comunidades(grafo, n):
     resultado = ""
-    labels = {}
-    i = 0
-    vertices = grafo.vertices() #lista de vertices en el grafo
-    entran = grafo.dicc_entrantes() #diccionario {v:set de vertices entrantes a v}
-    cant_vertices = len(vertices)
+    cant_vertices = grafo.cantidad_vertices()
     iteraciones  = int(cant_vertices * COEF_COMUNIDADES)
-    for v in vertices: #le asigno a cada vertice como etiqueta su posicion en la lista de vertices
-        labels[v] = i
-        i += 1
-    for j in range(iteraciones):
-        for vertice in vertices:
-            entrantes_v = entran[vertice] #set de vertices entrantes a v
-            if len(entrantes_v) == 0: continue #si el vertice está aislado lo salteo
-            max = max_label(entrantes_v, labels)
-            labels[vertice] = max
+    labels = label_propagation(grafo, iteraciones)
     cuenta = Counter(labels.values()) #cuento cuantas veces aparece cada valor repetido
     num_comunidad = 1
     for etiqueta, cuenta in cuenta.items(): #tomo cada etiqueta y sus apariciones
@@ -44,16 +33,6 @@ def buscar_comunidades(grafo, n):
                     resultado += "{}, ".format(vertice)#agrego al resultado los vertices que pertenecen a la comunidad
             num_comunidad += 1
     print(resultado.rstrip(", "))
-
-
-def max_label(entrantes_v, labels):
-    '''Dado un diccionario {vertice:label} y un set de vertices entrantes, Devuelve
-    el label más grande de los vertices entrantes'''
-    max = -1
-    for entrante in entrantes_v:
-        label = labels[entrante]
-        if label > max: max = label
-    return max
 
 def min_seguimientos(grafo, origen, destino):
     '''Imprime una lista con los delincuentes con los cuales vamos del delincuente origen
