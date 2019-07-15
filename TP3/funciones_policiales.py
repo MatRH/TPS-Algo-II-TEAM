@@ -1,7 +1,7 @@
 import heapq #Para poder utilizar el heap de python
 from collections import Counter #Sirve para contar las apariciones de elementos en una lista
 from tdas_auxiliares import Cola, Pila
-from bfs import bfs, dfs
+from bfs_dfs import bfs, dfs
 CANT_WALKS = 3600 #Cantidad de caminatas a realizar
 LEN_WALKS = 15  #Longitud de las caminatas
 COEF_COMUNIDADES = 0.01 #Coeficiente para el cálculo de iteraciones en la función de comunidades
@@ -112,8 +112,6 @@ def cfc(grafo):
 
     cont_aux = 1
     for comp in cfcs:
-    	comp = sorted(comp)
-    	comp = [str(x) for x in comp]
     	print("CFC {}: {}".format(cont_aux, ", ".join(comp)))
     	cont_aux += 1
 
@@ -191,7 +189,7 @@ def dfs_cfc(grafo, v, visitados, orden, p, s, cfcs, en_cfs):
         while z != v:
             z = s.desapilar()
             en_cfs.add(z)
-            nueva_cfc.append(z)
+            nueva_cfc.append(str(z))
         cfcs.append(nueva_cfc)
 
 def divulgar_ciclo_wrapper(grafo, origen, adyacente, n, camino, rechazados):
